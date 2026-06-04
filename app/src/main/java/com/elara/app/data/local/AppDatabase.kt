@@ -11,7 +11,7 @@ import com.elara.app.data.local.entity.SessionEntity
 
 @Database(
     entities = [SessionEntity::class, MessageEntity::class, ProfileEntity::class],
-    version = 1,
+    version = 2,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -23,6 +23,7 @@ abstract class AppDatabase : RoomDatabase() {
 
         fun get(context: Context): AppDatabase = INSTANCE ?: synchronized(this) {
             Room.databaseBuilder(context.applicationContext, AppDatabase::class.java, "elara.db")
+                .fallbackToDestructiveMigration()
                 .build()
                 .also { INSTANCE = it }
         }
