@@ -16,11 +16,13 @@ class VoiceManager(private val context: Context) {
     private var stt: SpeechRecognizer? = null
     private var isTtsReady = false
     private var continuous = false
+    private val continuousBuffer = StringBuilder()
 
     var onSpeechResult: ((String) -> Unit)? = null
     var onSpeechStarted: (() -> Unit)? = null
     var onSpeechEnded: (() -> Unit)? = null
     var onTtsDone: (() -> Unit)? = null
+    var onContinuousResult: ((String) -> Unit)? = null
 
     init {
         tts = TextToSpeech(context) { status ->
@@ -54,6 +56,7 @@ class VoiceManager(private val context: Context) {
 
     fun startContinuous() {
         continuous = true
+        continuousBuffer.clear()
         startInternal()
     }
 
@@ -72,8 +75,15 @@ class VoiceManager(private val context: Context) {
             override fun onResults(results: Bundle?) {
                 val matches = results?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
                 val text = matches?.firstOrNull()
-                if (text != null) onSpeechResult?.invoke(text)
-                if (!continuous) onSpeechEnded?.invoke()
+                if (text != null) {
+                    if (continuous) {
+                        continuousBuffer.append(text).append(" ")
+                        onContinuousResult?.invoke(text)
+                    } else {
+                        onSpeechResult?.invoke(text)
+                        onSpeechEnded?.invoke()
+                    }
+                }
                 restartIfContinuous()
             }
             override fun onPartialResults(partialResults: Bundle?) {}
@@ -98,9 +108,12 @@ class VoiceManager(private val context: Context) {
         stt = null
     }
 
-    fun stopListening() {
+    fun stopListening(): String {
         continuous = false
         stopInternal()
+        val text = continuousBuffer.toString().trim()
+        continuousBuffer.clear()
+        return text
     }
 
     fun destroy() {

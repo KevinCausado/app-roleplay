@@ -26,7 +26,6 @@ class MainActivity : AppCompatActivity() {
     private lateinit var adapter: MessageAdapter
     private lateinit var voiceManager: VoiceManager
     private var isListening = false
-    private val micBuffer = StringBuilder()
 
     private val permissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
@@ -100,17 +99,14 @@ class MainActivity : AppCompatActivity() {
 
     private fun toggleMic() {
         if (isListening) {
-            voiceManager.stopListening()
+            val text = voiceManager.stopListening()
             isListening = false
             binding.micButton.setImageResource(android.R.drawable.ic_btn_speak_now)
-            val text = micBuffer.toString().trim()
-            micBuffer.clear()
             if (text.isNotEmpty()) {
                 voiceManager.stopSpeaking()
                 viewModel.sendMessage(text)
             }
         } else {
-            micBuffer.clear()
             voiceManager.stopSpeaking()
             voiceManager.startContinuous()
             isListening = true
@@ -120,9 +116,6 @@ class MainActivity : AppCompatActivity() {
 
     private fun setupVoice() {
         voiceManager = VoiceManager(this)
-        voiceManager.onSpeechResult = { text ->
-            micBuffer.append(text).append(" ")
-        }
     }
 
     private fun setupObservers() {
