@@ -50,6 +50,12 @@ class VoiceManager(private val context: Context) {
         tts?.stop()
     }
 
+    fun startListening() {
+        continuous = false
+        onListeningStateChanged?.invoke(true)
+        startInternal()
+    }
+
     fun startDictation(existingText: String = "") {
         continuous = true
         dictationBuffer.clear()
