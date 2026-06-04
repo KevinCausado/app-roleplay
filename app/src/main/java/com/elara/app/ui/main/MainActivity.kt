@@ -99,16 +99,12 @@ class MainActivity : AppCompatActivity() {
 
     private fun toggleMic() {
         if (isListening) {
-            val text = voiceManager.stopListening()
+            voiceManager.stopDictation()
             isListening = false
             binding.micButton.setImageResource(android.R.drawable.ic_btn_speak_now)
-            if (text.isNotEmpty()) {
-                voiceManager.stopSpeaking()
-                viewModel.sendMessage(text)
-            }
         } else {
             voiceManager.stopSpeaking()
-            voiceManager.startContinuous()
+            voiceManager.startDictation(binding.messageInput.text?.toString() ?: "")
             isListening = true
             binding.micButton.setImageResource(android.R.drawable.ic_media_pause)
         }
@@ -116,6 +112,16 @@ class MainActivity : AppCompatActivity() {
 
     private fun setupVoice() {
         voiceManager = VoiceManager(this)
+        voiceManager.onDictationResult = { text ->
+            binding.messageInput.setText(text)
+            binding.messageInput.setSelection(text.length)
+        }
+        voiceManager.onListeningStateChanged = { listening ->
+            isListening = listening
+            val icon = if (listening) android.R.drawable.ic_media_pause
+                       else android.R.drawable.ic_btn_speak_now
+            binding.micButton.setImageResource(icon)
+        }
     }
 
     private fun setupObservers() {

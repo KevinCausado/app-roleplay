@@ -16,13 +16,14 @@ class VoiceManager(private val context: Context) {
     private var stt: SpeechRecognizer? = null
     private var isTtsReady = false
     private var continuous = false
-    private val continuousBuffer = StringBuilder()
+    private val dictationBuffer = StringBuilder()
 
     var onSpeechResult: ((String) -> Unit)? = null
     var onSpeechStarted: (() -> Unit)? = null
     var onSpeechEnded: (() -> Unit)? = null
     var onTtsDone: (() -> Unit)? = null
-    var onContinuousResult: ((String) -> Unit)? = null
+    var onDictationResult: ((String) -> Unit)? = null
+    var onListeningStateChanged: ((Boolean) -> Unit)? = null
 
     init {
         tts = TextToSpeech(context) { status ->
@@ -49,14 +50,12 @@ class VoiceManager(private val context: Context) {
         tts?.stop()
     }
 
-    fun startListening() {
-        continuous = false
-        startInternal()
-    }
-
-    fun startContinuous() {
+    fun startDictation(existingText: String = "") {
         continuous = true
-        continuousBuffer.clear()
+        dictationBuffer.clear()
+        val trimmed = existingText.trim()
+        if (trimmed.isNotEmpty()) dictationBuffer.append(trimmed).append(" ")
+        onListeningStateChanged?.invoke(true)
         startInternal()
     }
 
@@ -70,15 +69,15 @@ class VoiceManager(private val context: Context) {
             override fun onBeginningOfSpeech() {}
             override fun onRmsChanged(rmsdB: Float) {}
             override fun onBufferReceived(buffer: ByteArray?) {}
-            override fun onEndOfSpeech() { if (!continuous) onSpeechEnded?.invoke() }
-            override fun onError(error: Int) { if (!continuous) onSpeechEnded?.invoke(); restartIfContinuous() }
+            override fun onEndOfSpeech() {}
+            override fun onError(error: Int) { restartIfContinuous() }
             override fun onResults(results: Bundle?) {
                 val matches = results?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
                 val text = matches?.firstOrNull()
                 if (text != null) {
                     if (continuous) {
-                        continuousBuffer.append(text).append(" ")
-                        onContinuousResult?.invoke(text)
+                        dictationBuffer.append(text).append(" ")
+                        onDictationResult?.invoke(dictationBuffer.toString().trim())
                     } else {
                         onSpeechResult?.invoke(text)
                         onSpeechEnded?.invoke()
@@ -86,7 +85,17 @@ class VoiceManager(private val context: Context) {
                 }
                 restartIfContinuous()
             }
-            override fun onPartialResults(partialResults: Bundle?) {}
+            override fun onPartialResults(partialResults: Bundle?) {
+                if (continuous) {
+                    val matches = partialResults?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
+                    val text = matches?.firstOrNull()
+                    if (text != null) {
+                        val full = dictationBuffer.toString().trimEnd()
+                        val space = if (full.isEmpty() || full.endsWith(" ")) "" else " "
+                        onDictationResult?.invoke("$full$space$text")
+                    }
+                }
+            }
             override fun onEvent(eventType: Int, params: Bundle?) {}
         })
 
@@ -95,7 +104,6 @@ class VoiceManager(private val context: Context) {
             putExtra(RecognizerIntent.EXTRA_LANGUAGE, "en-US")
             putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true)
             if (continuous) {
-                // 5 minutes of silence before end-of-speech triggers
                 putExtra("android.speech.extra.SPEECH_INPUT_COMPLETE_SILENCE_LENGTH_MILLIS", 300000L)
                 putExtra("android.speech.extra.SPEECH_INPUT_MINIMUM_LENGTH_MILLIS", 300000L)
             }
@@ -113,12 +121,11 @@ class VoiceManager(private val context: Context) {
         stt = null
     }
 
-    fun stopListening(): String {
+    fun stopDictation() {
         continuous = false
         stopInternal()
-        val text = continuousBuffer.toString().trim()
-        continuousBuffer.clear()
-        return text
+        dictationBuffer.clear()
+        onListeningStateChanged?.invoke(false)
     }
 
     fun destroy() {
