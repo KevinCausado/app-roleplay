@@ -30,7 +30,7 @@ class UpdateCharacterMemoryUseCase(
                 auth = OpenRouterClient.authHeader,
                 request = ChatRequest(
                     messages = listOf(ChatMessage("user", prompt)),
-                    max_tokens = 300
+                    maxTokens = 300
                 )
             )
             val newMemory = response.body()?.choices?.firstOrNull()?.message?.content ?: return

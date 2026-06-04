@@ -74,9 +74,17 @@ class MessageAdapter(
                     marginStart = 0; marginEnd = 60
                 }
                 (b.root as LinearLayout).gravity = Gravity.START
-                makeWordsTappable(b.messageText, turn.content)
+                if (!ImmersionSettings.isNoTranslation(b.root.context))
+                    makeWordsTappable(b.messageText, turn.content)
+                else b.messageText.text = turn.content
                 b.repeatButton.visibility = View.VISIBLE
                 b.repeatButton.setOnClickListener { onShadow?.invoke(turn.content) }
+                b.messageText.setOnLongClickListener {
+                    val clipboard = it.context.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+                    clipboard.setPrimaryClip(android.content.ClipData.newPlainText("message", turn.content))
+                    android.widget.Toast.makeText(it.context, "Copied", android.widget.Toast.LENGTH_SHORT).show()
+                    true
+                }
             }
         }
 

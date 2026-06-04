@@ -69,10 +69,21 @@
             android:layout_width="match_parent"
             android:layout_height="52dp"
             android:layout_marginHorizontal="20dp"
-            android:text="Choose image from gallery"
+            android:text="Choose background from gallery"
             android:textColor="#FFFFFF"
             android:textSize="14sp"
             android:backgroundTint="#7B5EA7" />
+
+        <Button
+            android:id="@+id/changeAvatarButton"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:layout_marginHorizontal="20dp"
+            android:layout_marginTop="8dp"
+            android:text="Choose avatar photo"
+            android:textColor="#FFFFFF"
+            android:textSize="14sp"
+            android:backgroundTint="#2A2A45" />
 
         <View android:layout_width="match_parent" android:layout_height="1dp"
             android:background="#1A1A2E" android:layout_marginVertical="16dp"
@@ -152,6 +163,33 @@
             android:layout_marginHorizontal="20dp"
             android:progressTint="#7B5EA7"
             android:thumbTint="#7B5EA7" />
+
+        <View android:layout_width="match_parent" android:layout_height="1dp"
+            android:background="#1A1A2E" android:layout_marginVertical="16dp"
+            android:layout_marginHorizontal="20dp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingHorizontal="20dp"
+            android:paddingBottom="16dp">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Immersion mode (no translation)"
+                android:textColor="#DDDDFF"
+                android:textSize="14sp" />
+
+            <androidx.appcompat.widget.SwitchCompat
+                android:id="@+id/immersionModeSwitch"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+
+        </LinearLayout>
 
         <View android:layout_width="match_parent" android:layout_height="1dp"
             android:background="#1A1A2E" android:layout_marginVertical="16dp"

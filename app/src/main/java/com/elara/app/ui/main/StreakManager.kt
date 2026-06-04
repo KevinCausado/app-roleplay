@@ -31,6 +31,8 @@ object StreakManager {
         return if (lastDay == todayKey() || lastDay == yesterdayKey()) streak else 0
     }
 
+    fun todayKeyPublic(context: Context) = todayKey()
+
     private fun todayKey(): String {
         val c = Calendar.getInstance()
         return "${c.get(Calendar.YEAR)}-${c.get(Calendar.DAY_OF_YEAR)}"

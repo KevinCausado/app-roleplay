@@ -15,6 +15,8 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.elara.app.R
 import com.elara.app.data.remote.drive.ElaraDriveSync
+import com.elara.app.notifications.NotificationHelper
+import com.elara.app.notifications.NotificationScheduler
 import com.elara.app.databinding.ActivityMainBinding
 import com.elara.app.domain.model.Character
 import com.elara.app.domain.model.Personality
@@ -57,12 +59,29 @@ class MainActivity : AppCompatActivity() {
         ActivityResultContracts.RequestPermission()
     ) { }
 
+    private val notificationPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { }
+
+    private fun requestNotificationPermission() {
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.POST_NOTIFICATIONS)
+                != PackageManager.PERMISSION_GRANTED) {
+                notificationPermissionLauncher.launch(android.Manifest.permission.POST_NOTIFICATIONS)
+            }
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
         driveSync = ElaraDriveSync(this)
+        timerHandler.post(timerRunnable)
+        NotificationHelper.createChannels(this)
+        NotificationScheduler.schedule(this)
+        requestNotificationPermission()
         setupRecycler()
         setupInput()
         setupVoice()
@@ -102,6 +121,9 @@ class MainActivity : AppCompatActivity() {
         binding.settingsButton.setOnClickListener { showChatSettings() }
         binding.wordsButton.setOnClickListener {
             startActivity(android.content.Intent(this, com.elara.app.ui.words.WordsActivity::class.java))
+        }
+        binding.historyButton.setOnClickListener {
+            startActivity(android.content.Intent(this, com.elara.app.ui.history.HistoryActivity::class.java))
         }
 
         // Immersive toggle
@@ -269,6 +291,9 @@ class MainActivity : AppCompatActivity() {
                 binding.characterNameText.text = state.currentCharacter.displayName
                 binding.messageInput.hint = "Message ${state.currentCharacter.displayName}..."
                 updateWorldTheme(state.currentWorld)
+                val avatarUri = AvatarManager.get(this@MainActivity, state.currentCharacter.name)
+                if (avatarUri != null) binding.avatarImage.setImageURI(avatarUri)
+                else binding.avatarImage.setImageResource(com.elara.app.R.drawable.avatar_elara)
 
                 // Immersive status
                 if (isImmersive) {
@@ -309,6 +334,17 @@ class MainActivity : AppCompatActivity() {
     }
 
     private var currentFontSize = 15f
+    private var sessionStartTime = System.currentTimeMillis()
+    private val timerHandler = android.os.Handler(android.os.Looper.getMainLooper())
+    private val timerRunnable = object : Runnable {
+        override fun run() {
+            val elapsed = (System.currentTimeMillis() - sessionStartTime) / 1000
+            val m = elapsed / 60
+            val s = elapsed % 60
+            binding.timerText.text = "%d:%02d".format(m, s)
+            timerHandler.postDelayed(this, 1000)
+        }
+    }
 
     private fun loadVoiceSettings() {
         voiceManager.pitch = VoiceSettings.getPitch(this)
@@ -338,6 +374,11 @@ class MainActivity : AppCompatActivity() {
                 voiceManager.pitch = pitch
                 voiceManager.speechRate = rate
                 voiceManager.applyVoiceSettings()
+            },
+            onAvatarPicked = { uri ->
+                val charId = viewModel.uiState.value.currentCharacter.name
+                AvatarManager.save(this, charId, uri)
+                binding.avatarImage.setImageURI(uri)
             },
             onDriveConnect = { launchAccountPicker() },
             onDrivePush = {
@@ -413,5 +454,6 @@ class MainActivity : AppCompatActivity() {
     override fun onDestroy() {
         super.onDestroy()
         voiceManager.destroy()
+        timerHandler.removeCallbacks(timerRunnable)
     }
 }

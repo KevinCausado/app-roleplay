@@ -31,6 +31,14 @@ android {
         viewBinding = true
     }
 
+    packaging {
+        resources.excludes += "META-INF/DEPENDENCIES"
+        resources.excludes += "META-INF/LICENSE"
+        resources.excludes += "META-INF/LICENSE.txt"
+        resources.excludes += "META-INF/NOTICE"
+        resources.excludes += "META-INF/NOTICE.txt"
+    }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
@@ -61,6 +69,7 @@ dependencies {
     implementation(libs.camerax.view)
     implementation(libs.mlkit.objectdetection)
     implementation(libs.gson)
+    implementation(libs.work.runtime.ktx)
     implementation(libs.play.services.auth)
     implementation(libs.google.api.client.android)
     implementation(libs.google.api.services.drive)

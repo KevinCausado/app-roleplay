@@ -22,18 +22,25 @@ class ChatSettingsSheet(
     private val onFontSizeChanged: (Float) -> Unit,
     private val onBackgroundPicked: (Uri) -> Unit,
     private val onVoiceChanged: (pitch: Float, rate: Float) -> Unit,
+    private val onAvatarPicked: ((Uri) -> Unit)? = null,
     private val onDriveConnect: (() -> Unit)? = null,
     private val onDrivePush: (() -> Unit)? = null,
     private val onDrivePull: (() -> Unit)? = null,
     private val driveAccountName: String? = null
 ) : BottomSheetDialogFragment() {
 
+    private var pickingAvatar = false
+
     private val pickImage = registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         if (uri != null) {
             requireContext().contentResolver.takePersistableUriPermission(
                 uri, Intent.FLAG_GRANT_READ_URI_PERMISSION
             )
-            onBackgroundPicked(uri)
+            if (pickingAvatar) {
+                onAvatarPicked?.invoke(uri)
+            } else {
+                onBackgroundPicked(uri)
+            }
             dismiss()
         }
     }
@@ -63,6 +70,12 @@ class ChatSettingsSheet(
         val bgLabel = view.findViewById<TextView>(R.id.bgWorldLabel)
         bgLabel.text = "Background for: $currentWorldName"
         view.findViewById<Button>(R.id.changeBgButton).setOnClickListener {
+            pickingAvatar = false
+            pickImage.launch("image/*")
+        }
+
+        view.findViewById<Button>(R.id.changeAvatarButton).setOnClickListener {
+            pickingAvatar = true
             pickImage.launch("image/*")
         }
 
@@ -101,6 +114,12 @@ class ChatSettingsSheet(
         // Drive
         val driveAccountTv = view.findViewById<TextView>(R.id.driveAccountText)
         driveAccountTv.text = driveAccountName ?: "Not connected"
+        val immersionSwitch = view.findViewById<androidx.appcompat.widget.SwitchCompat>(R.id.immersionModeSwitch)
+        immersionSwitch.isChecked = ImmersionSettings.isNoTranslation(requireContext())
+        immersionSwitch.setOnCheckedChangeListener { _, checked ->
+            ImmersionSettings.setNoTranslation(requireContext(), checked)
+        }
+
         view.findViewById<Button>(R.id.driveConnectButton).setOnClickListener {
             onDriveConnect?.invoke(); dismiss()
         }
