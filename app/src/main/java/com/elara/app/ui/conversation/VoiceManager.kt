@@ -67,7 +67,7 @@ class VoiceManager(private val context: Context) {
             override fun onBeginningOfSpeech() {}
             override fun onRmsChanged(rmsdB: Float) {}
             override fun onBufferReceived(buffer: ByteArray?) {}
-            override fun onEndOfSpeech() { if (!continuous) onSpeechEnded?.invoke(); restartIfContinuous() }
+            override fun onEndOfSpeech() { if (!continuous) onSpeechEnded?.invoke() }
             override fun onError(error: Int) { if (!continuous) onSpeechEnded?.invoke(); restartIfContinuous() }
             override fun onResults(results: Bundle?) {
                 val matches = results?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
