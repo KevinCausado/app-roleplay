@@ -26,6 +26,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var adapter: MessageAdapter
     private lateinit var voiceManager: VoiceManager
     private var isListening = false
+    private val micBuffer = StringBuilder()
 
     private val permissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
@@ -102,9 +103,16 @@ class MainActivity : AppCompatActivity() {
             voiceManager.stopListening()
             isListening = false
             binding.micButton.setImageResource(android.R.drawable.ic_btn_speak_now)
+            val text = micBuffer.toString().trim()
+            micBuffer.clear()
+            if (text.isNotEmpty()) {
+                voiceManager.stopSpeaking()
+                viewModel.sendMessage(text)
+            }
         } else {
+            micBuffer.clear()
             voiceManager.stopSpeaking()
-            voiceManager.startListening()
+            voiceManager.startContinuous()
             isListening = true
             binding.micButton.setImageResource(android.R.drawable.ic_media_pause)
         }
@@ -113,17 +121,7 @@ class MainActivity : AppCompatActivity() {
     private fun setupVoice() {
         voiceManager = VoiceManager(this)
         voiceManager.onSpeechResult = { text ->
-            isListening = false
-            runOnUiThread {
-                binding.micButton.setImageResource(android.R.drawable.ic_btn_speak_now)
-            }
-            viewModel.sendMessage(text)
-        }
-        voiceManager.onSpeechEnded = {
-            isListening = false
-            runOnUiThread {
-                binding.micButton.setImageResource(android.R.drawable.ic_btn_speak_now)
-            }
+            micBuffer.append(text).append(" ")
         }
     }
 

@@ -15,6 +15,7 @@ class VoiceManager(private val context: Context) {
     private var tts: TextToSpeech? = null
     private var stt: SpeechRecognizer? = null
     private var isTtsReady = false
+    private var continuous = false
 
     var onSpeechResult: ((String) -> Unit)? = null
     var onSpeechStarted: (() -> Unit)? = null
@@ -47,7 +48,18 @@ class VoiceManager(private val context: Context) {
     }
 
     fun startListening() {
+        continuous = false
+        startInternal()
+    }
+
+    fun startContinuous() {
+        continuous = true
+        startInternal()
+    }
+
+    private fun startInternal() {
         if (!SpeechRecognizer.isRecognitionAvailable(context)) return
+        stopInternal()
 
         stt = SpeechRecognizer.createSpeechRecognizer(context)
         stt?.setRecognitionListener(object : RecognitionListener {
@@ -55,12 +67,14 @@ class VoiceManager(private val context: Context) {
             override fun onBeginningOfSpeech() {}
             override fun onRmsChanged(rmsdB: Float) {}
             override fun onBufferReceived(buffer: ByteArray?) {}
-            override fun onEndOfSpeech() { onSpeechEnded?.invoke() }
-            override fun onError(error: Int) { onSpeechEnded?.invoke() }
+            override fun onEndOfSpeech() { if (!continuous) onSpeechEnded?.invoke(); restartIfContinuous() }
+            override fun onError(error: Int) { if (!continuous) onSpeechEnded?.invoke(); restartIfContinuous() }
             override fun onResults(results: Bundle?) {
                 val matches = results?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
-                val text = matches?.firstOrNull() ?: return
-                onSpeechResult?.invoke(text)
+                val text = matches?.firstOrNull()
+                if (text != null) onSpeechResult?.invoke(text)
+                if (!continuous) onSpeechEnded?.invoke()
+                restartIfContinuous()
             }
             override fun onPartialResults(partialResults: Bundle?) {}
             override fun onEvent(eventType: Int, params: Bundle?) {}
@@ -69,19 +83,29 @@ class VoiceManager(private val context: Context) {
         val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
             putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
             putExtra(RecognizerIntent.EXTRA_LANGUAGE, "en-US")
-            putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, false)
+            putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true)
         }
         stt?.startListening(intent)
     }
 
-    fun stopListening() {
+    private fun restartIfContinuous() {
+        if (continuous) startInternal()
+    }
+
+    private fun stopInternal() {
         stt?.stopListening()
         stt?.destroy()
         stt = null
     }
 
+    fun stopListening() {
+        continuous = false
+        stopInternal()
+    }
+
     fun destroy() {
+        continuous = false
         tts?.shutdown()
-        stt?.destroy()
+        stopInternal()
     }
 }
