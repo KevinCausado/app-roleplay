@@ -4,30 +4,57 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#0A0A0F">
+    android:background="#080810">
+
+    <!-- Background image (custom per world) -->
+    <ImageView
+        android:id="@+id/chatBgImage"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:scaleType="centerCrop"
+        android:visibility="gone"
+        android:alpha="0.25"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
 
     <!-- Header -->
     <LinearLayout
         android:id="@+id/header"
         android:layout_width="0dp"
-        android:layout_height="72dp"
+        android:layout_height="68dp"
         android:orientation="horizontal"
         android:gravity="center_vertical"
         android:paddingHorizontal="16dp"
-        android:background="#12121A"
+        android:paddingTop="8dp"
+        android:background="#0F0F1A"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 
-        <ImageView
-            android:id="@+id/avatarImage"
-            android:layout_width="44dp"
-            android:layout_height="44dp"
-            android:src="@drawable/avatar_elara"
-            android:scaleType="centerCrop"
-            android:background="@drawable/avatar_bg"
+        <!-- Avatar with gradient ring -->
+        <FrameLayout
+            android:layout_width="46dp"
+            android:layout_height="46dp"
             android:clickable="true"
-            android:focusable="true" />
+            android:focusable="true">
+
+            <View
+                android:layout_width="46dp"
+                android:layout_height="46dp"
+                android:background="@drawable/avatar_bg" />
+
+            <ImageView
+                android:id="@+id/avatarImage"
+                android:layout_width="42dp"
+                android:layout_height="42dp"
+                android:layout_gravity="center"
+                android:src="@drawable/avatar_elara"
+                android:scaleType="centerCrop"
+                android:background="@drawable/avatar_bg" />
+
+        </FrameLayout>
 
         <LinearLayout
             android:layout_width="0dp"
@@ -43,18 +70,22 @@
                 android:gravity="center_vertical">
 
                 <TextView
+                    android:id="@+id/characterNameText"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Elara"
-                    android:textColor="#FFFFFF"
+                    android:textColor="#F0F0FF"
                     android:textSize="17sp"
-                    android:textStyle="bold" />
+                    android:textStyle="bold"
+                    android:letterSpacing="0.02"
+                    android:clickable="true"
+                    android:focusable="true" />
 
                 <TextView
                     android:id="@+id/escalationText"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="6dp"
+                    android:layout_marginStart="8dp"
                     android:textColor="#E94560"
                     android:textSize="10sp" />
 
@@ -77,8 +108,8 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text=" · "
-                    android:textColor="#444455"
+                    android:text="  ·  "
+                    android:textColor="#33334A"
                     android:textSize="11sp" />
 
                 <TextView
@@ -86,7 +117,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="🏙️ Modern"
-                    android:textColor="#7B5EA7"
+                    android:textColor="#9B6FD4"
                     android:textSize="11sp"
                     android:clickable="true"
                     android:focusable="true" />
@@ -94,8 +125,8 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text=" · "
-                    android:textColor="#444455"
+                    android:text="  ·  "
+                    android:textColor="#33334A"
                     android:textSize="11sp" />
 
                 <TextView
@@ -112,37 +143,61 @@
 
         </LinearLayout>
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/clearButton"
-            android:layout_width="36dp"
-            android:layout_height="36dp"
-            android:text="↺"
-            android:textSize="18sp"
-            android:textColor="#666680"
-            style="@style/Widget.MaterialComponents.Button.TextButton"
-            app:rippleColor="#22FFFFFF" />
-
-        <com.google.android.material.button.MaterialButton
+        <ImageButton
             android:id="@+id/immersiveToggle"
-            android:layout_width="36dp"
-            android:layout_height="36dp"
-            android:text="👁"
-            android:textSize="16sp"
-            android:textColor="#666680"
-            style="@style/Widget.MaterialComponents.Button.TextButton"
-            app:rippleColor="#22FFFFFF" />
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:src="@android:drawable/ic_menu_view"
+            android:tint="#7777AA"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Immersive mode"
+            android:scaleType="fitCenter"
+            android:padding="10dp" />
+
+        <ImageButton
+            android:id="@+id/settingsButton"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:src="@android:drawable/ic_menu_preferences"
+            android:tint="#7777AA"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Settings"
+            android:scaleType="fitCenter"
+            android:padding="10dp" />
+
+        <ImageButton
+            android:id="@+id/clearButton"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:src="@android:drawable/ic_menu_delete"
+            android:tint="#7777AA"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Clear chat"
+            android:scaleType="fitCenter"
+            android:padding="10dp" />
 
     </LinearLayout>
+
+    <!-- Subtle divider -->
+    <View
+        android:id="@+id/headerDivider"
+        android:layout_width="0dp"
+        android:layout_height="1dp"
+        android:background="#1A1A2E"
+        app:layout_constraintTop_toBottomOf="@id/header"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
 
     <!-- Chat messages -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/chatRecycler"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:paddingHorizontal="12dp"
-        android:paddingVertical="8dp"
+        android:paddingHorizontal="16dp"
+        android:paddingTop="12dp"
+        android:paddingBottom="8dp"
         android:clipToPadding="false"
-        app:layout_constraintTop_toBottomOf="@id/header"
+        app:layout_constraintTop_toBottomOf="@id/headerDivider"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintBottom_toTopOf="@id/inputContainer" />
@@ -156,7 +211,7 @@
         android:gravity="center_vertical"
         android:paddingHorizontal="12dp"
         android:paddingVertical="10dp"
-        android:background="#12121A"
+        android:background="#0F0F1A"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
@@ -166,12 +221,13 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-            app:boxBackgroundColor="#1E1E2E"
-            app:boxStrokeColor="#2A2A3E"
-            app:boxCornerRadiusTopStart="24dp"
-            app:boxCornerRadiusTopEnd="24dp"
-            app:boxCornerRadiusBottomStart="24dp"
-            app:boxCornerRadiusBottomEnd="24dp"
+            app:boxBackgroundColor="#14142A"
+            app:boxStrokeColor="#2A2A45"
+            app:boxStrokeWidth="1dp"
+            app:boxCornerRadiusTopStart="26dp"
+            app:boxCornerRadiusTopEnd="26dp"
+            app:boxCornerRadiusBottomStart="26dp"
+            app:boxCornerRadiusBottomEnd="26dp"
             app:hintEnabled="false">
 
             <com.google.android.material.textfield.TextInputEditText
@@ -179,11 +235,11 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:hint="Message Elara..."
-                android:textColor="#FFFFFF"
-                android:textColorHint="#55556A"
+                android:textColor="#E8E8FF"
+                android:textColorHint="#44445A"
                 android:textSize="15sp"
-                android:paddingHorizontal="16dp"
-                android:paddingVertical="12dp"
+                android:paddingHorizontal="18dp"
+                android:paddingVertical="13dp"
                 android:background="@null"
                 android:inputType="text"
                 android:singleLine="true"
@@ -197,10 +253,11 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
             android:src="@android:drawable/ic_btn_speak_now"
-            app:backgroundTint="#1E1E2E"
-            app:tint="#8888AA"
+            app:backgroundTint="#14142A"
+            app:tint="#7777AA"
             app:fabSize="mini"
-            app:elevation="0dp" />
+            app:elevation="0dp"
+            app:borderWidth="0dp" />
 
         <com.google.android.material.floatingactionbutton.FloatingActionButton
             android:id="@+id/sendButton"
@@ -211,7 +268,8 @@
             app:backgroundTint="#7B5EA7"
             app:tint="#FFFFFF"
             app:fabSize="mini"
-            app:elevation="2dp" />
+            app:elevation="4dp"
+            app:borderWidth="0dp" />
 
     </LinearLayout>
 
@@ -220,26 +278,51 @@
         android:id="@+id/immersiveOverlay"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="#0A0A0F"
+        android:background="#080810"
         android:visibility="gone"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent">
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
 
-        <!-- Exit immersive button -->
+        <!-- Background image immersive -->
+        <ImageView
+            android:id="@+id/immersiveBgImage"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="centerCrop"
+            android:visibility="gone"
+            android:alpha="0.2"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+        <!-- Exit button -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/exitImmersive"
             android:layout_width="40dp"
             android:layout_height="40dp"
             android:text="✕"
-            android:textSize="20sp"
-            android:textColor="#8888AA"
+            android:textSize="18sp"
+            android:textColor="#44445A"
             style="@style/Widget.MaterialComponents.Button.TextButton"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            android:layout_marginTop="16dp"
+            android:layout_marginTop="20dp"
             android:layout_marginEnd="16dp" />
+
+        <!-- Pulse ring behind avatar -->
+        <View
+            android:id="@+id/pulseRing"
+            android:layout_width="160dp"
+            android:layout_height="160dp"
+            android:background="@drawable/pulse_ring"
+            app:layout_constraintBottom_toTopOf="@id/immersiveMic"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:layout_marginBottom="24dp"
+            android:visibility="invisible" />
 
         <!-- Avatar large -->
         <ImageView
@@ -249,25 +332,40 @@
             android:src="@drawable/avatar_elara"
             android:scaleType="centerCrop"
             android:background="@drawable/avatar_bg"
+            app:layout_constraintBottom_toTopOf="@id/immersiveStatusText"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:layout_marginBottom="16dp" />
+
+        <!-- Elara status text -->
+        <TextView
+            android:id="@+id/immersiveStatusText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Elara"
+            android:textColor="#9B9BBB"
+            android:textSize="16sp"
+            android:letterSpacing="0.05"
             app:layout_constraintBottom_toTopOf="@id/immersiveMic"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            android:layout_marginBottom="40dp" />
+            android:layout_marginBottom="36dp" />
 
         <!-- Mic button large -->
         <com.google.android.material.floatingactionbutton.FloatingActionButton
             android:id="@+id/immersiveMic"
-            android:layout_width="72dp"
-            android:layout_height="72dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:src="@android:drawable/ic_btn_speak_now"
-            app:backgroundTint="#1E1E2E"
-            app:tint="#8888AA"
+            app:backgroundTint="#14142A"
+            app:tint="#9B6FD4"
             app:fabSize="normal"
-            app:elevation="0dp"
+            app:elevation="8dp"
+            app:borderWidth="0dp"
             app:layout_constraintBottom_toTopOf="@id/immersiveHint"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            android:layout_marginBottom="24dp" />
+            android:layout_marginBottom="16dp" />
 
         <!-- Hint text -->
         <TextView
@@ -275,12 +373,13 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Tap mic to begin"
-            android:textColor="#55556A"
-            android:textSize="14sp"
+            android:textColor="#33334A"
+            android:textSize="13sp"
+            android:letterSpacing="0.08"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            android:layout_marginBottom="80dp" />
+            android:layout_marginBottom="60dp" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

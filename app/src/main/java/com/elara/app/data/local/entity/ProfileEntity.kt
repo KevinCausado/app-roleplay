@@ -10,8 +10,8 @@ data class ProfileEntity(
     val escalationLevel: Int = 0,
     val currentWorld: String = "MODERN",
     val currentPersonality: String = "FRIENDLY",
+    val currentCharacter: String = "ELARA",
     val currentSessionId: Long? = null,
-    // Lorebook — hechos acumulados sobre Kevin que siempre van al prompt
     val lorebookEntries: String = DEFAULT_LOREBOOK
 ) {
     companion object {

@@ -13,10 +13,16 @@ import com.elara.app.domain.model.ConversationTurn
 class MessageAdapter : RecyclerView.Adapter<MessageAdapter.MessageVH>() {
 
     private val items = mutableListOf<ConversationTurn>()
+    private var fontSize = 15f
 
     fun submitList(list: List<ConversationTurn>) {
         items.clear()
         items.addAll(list)
+        notifyDataSetChanged()
+    }
+
+    fun setFontSize(size: Float) {
+        fontSize = size
         notifyDataSetChanged()
     }
 
@@ -31,9 +37,10 @@ class MessageAdapter : RecyclerView.Adapter<MessageAdapter.MessageVH>() {
 
     override fun getItemCount() = items.size
 
-    class MessageVH(private val b: ItemMessageBinding) : RecyclerView.ViewHolder(b.root) {
+    inner class MessageVH(private val b: ItemMessageBinding) : RecyclerView.ViewHolder(b.root) {
         fun bind(turn: ConversationTurn) {
             b.messageText.text = turn.content
+            b.messageText.textSize = fontSize
 
             if (turn.role == "user") {
                 b.messageText.background = ContextCompat.getDrawable(b.root.context, R.drawable.bubble_user)

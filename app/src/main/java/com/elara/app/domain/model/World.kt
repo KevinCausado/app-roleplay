@@ -4,7 +4,9 @@ enum class World(
     val displayName: String,
     val emoji: String,
     val description: String,
-    val promptContext: String
+    val promptContext: String,
+    val bgRes: Int = 0,
+    val accentColor: Int = 0xFF7B5EA7.toInt()
 ) {
     MODERN(
         "Modern — Austin TX",

@@ -11,8 +11,11 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.elara.app.R
 import com.elara.app.databinding.ActivityMainBinding
+import com.elara.app.domain.model.Character
 import com.elara.app.domain.model.Personality
+import com.elara.app.domain.model.World
 import com.elara.app.ui.conversation.ConversationViewModel
 import com.elara.app.ui.conversation.VoiceManager
 import kotlinx.coroutines.launch
@@ -64,15 +67,24 @@ class MainActivity : AppCompatActivity() {
             if (actionId == EditorInfo.IME_ACTION_SEND) { sendText(); true } else false
         }
 
-        binding.avatarImage.setOnClickListener { showWorldsSheet() }
+        binding.avatarImage.setOnClickListener { showCharacterSheet() }
+        binding.characterNameText.setOnClickListener { showCharacterSheet() }
         binding.worldLabel.setOnClickListener { showWorldsSheet() }
         binding.personalityLabel.setOnClickListener { showPersonalitySheet() }
         binding.clearButton.setOnClickListener { viewModel.clearHistory() }
+        binding.settingsButton.setOnClickListener { showChatSettings() }
 
         // Immersive toggle
         binding.immersiveToggle.setOnClickListener { enterImmersive() }
         binding.exitImmersive.setOnClickListener { exitImmersive() }
         binding.immersiveMic.setOnClickListener { toggleImmersiveMic() }
+    }
+
+    private fun showCharacterSheet() {
+        val current = viewModel.uiState.value.currentCharacter
+        CharacterBottomSheet(current) { character ->
+            viewModel.setCharacter(character)
+        }.show(supportFragmentManager, "character")
     }
 
     private fun showWorldsSheet() {
@@ -118,7 +130,9 @@ class MainActivity : AppCompatActivity() {
         binding.chatRecycler.visibility = android.view.View.GONE
         binding.inputContainer.visibility = android.view.View.GONE
         binding.header.visibility = android.view.View.GONE
-        binding.immersiveHint.text = "Tap mic to begin"
+        binding.immersiveHint.text = "tap to speak"
+        binding.immersiveStatusText.text = "Elara"
+        binding.pulseRing.visibility = android.view.View.INVISIBLE
         binding.immersiveMic.setImageResource(android.R.drawable.ic_btn_speak_now)
     }
 
@@ -127,6 +141,7 @@ class MainActivity : AppCompatActivity() {
         isImmersive = false
         voiceManager.stopListening()
         voiceManager.stopSpeaking()
+        stopPulse()
         binding.immersiveOverlay.visibility = android.view.View.GONE
         binding.chatRecycler.visibility = android.view.View.VISIBLE
         binding.inputContainer.visibility = android.view.View.VISIBLE
@@ -135,16 +150,14 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun toggleImmersiveMic() {
-        if (immersiveLoopActive) {
-            stopImmersiveLoop()
-        } else {
-            startImmersiveLoop()
-        }
+        if (immersiveLoopActive) stopImmersiveLoop() else startImmersiveLoop()
     }
 
     private fun startImmersiveLoop() {
         immersiveLoopActive = true
-        binding.immersiveHint.text = "Listening..."
+        binding.immersiveHint.text = "listening..."
+        binding.immersiveStatusText.text = "I'm listening"
+        startPulse()
         voiceManager.stopSpeaking()
         voiceManager.startListening()
         binding.immersiveMic.setImageResource(android.R.drawable.ic_media_pause)
@@ -154,8 +167,21 @@ class MainActivity : AppCompatActivity() {
         immersiveLoopActive = false
         voiceManager.stopListening()
         voiceManager.stopSpeaking()
-        binding.immersiveHint.text = "Tap mic to begin"
+        stopPulse()
+        binding.immersiveHint.text = "tap to speak"
+        binding.immersiveStatusText.text = "Elara"
         binding.immersiveMic.setImageResource(android.R.drawable.ic_btn_speak_now)
+    }
+
+    private fun startPulse() {
+        binding.pulseRing.visibility = android.view.View.VISIBLE
+        val anim = android.view.animation.AnimationUtils.loadAnimation(this, com.elara.app.R.anim.pulse)
+        binding.pulseRing.startAnimation(anim)
+    }
+
+    private fun stopPulse() {
+        binding.pulseRing.clearAnimation()
+        binding.pulseRing.visibility = android.view.View.INVISIBLE
     }
 
     private fun setupVoice() {
@@ -203,14 +229,29 @@ class MainActivity : AppCompatActivity() {
                 binding.worldLabel.text = "${state.currentWorld.emoji} ${state.currentWorld.displayName}"
                 binding.personalityLabel.text = "${state.currentPersonality.emoji} ${state.currentPersonality.displayName}"
                 binding.escalationText.text = "❤".repeat(state.escalationLevel.coerceAtMost(9))
+                binding.characterNameText.text = state.currentCharacter.displayName
+                binding.messageInput.hint = "Message ${state.currentCharacter.displayName}..."
+                updateWorldTheme(state.currentWorld)
 
-                // Immersive hint
+                // Immersive status
                 if (isImmersive) {
-                    binding.immersiveHint.text = when {
-                        state.isLoading -> "Thinking..."
-                        state.messages.lastOrNull()?.role == "assistant" && !state.isLoading -> "Speaking..."
-                        immersiveLoopActive -> "Listening..."
-                        else -> "Tap mic to begin"
+                    val charName = state.currentCharacter.displayName
+                    when {
+                        state.isLoading -> {
+                            binding.immersiveHint.text = "thinking..."
+                            binding.immersiveStatusText.text = "..."
+                            stopPulse()
+                        }
+                        !state.isLoading && state.messages.lastOrNull()?.role == "assistant" -> {
+                            binding.immersiveHint.text = "speaking"
+                            binding.immersiveStatusText.text = charName
+                            stopPulse()
+                        }
+                        immersiveLoopActive -> {
+                            binding.immersiveHint.text = "listening..."
+                            binding.immersiveStatusText.text = "I'm listening"
+                            startPulse()
+                        }
                     }
                 }
 
@@ -228,6 +269,71 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
+    }
+
+    private var currentFontSize = 15f
+
+    private fun showChatSettings() {
+        val worldName = viewModel.uiState.value.currentWorld.name
+        ChatSettingsSheet(currentFontSize, worldName,
+            onFontSizeChanged = { size ->
+                currentFontSize = size
+                adapter.setFontSize(size)
+            },
+            onBackgroundPicked = { uri ->
+                BackgroundManager.save(this, worldName, uri)
+                applyBackground(worldName)
+            }
+        ).show(supportFragmentManager, "settings")
+    }
+
+    private fun applyBackground(worldName: String) {
+        val uri = BackgroundManager.get(this, worldName)
+        if (uri != null) {
+            binding.root.background = null
+            binding.chatBgImage.setImageURI(uri)
+            binding.chatBgImage.visibility = android.view.View.VISIBLE
+            binding.immersiveBgImage.setImageURI(uri)
+            binding.immersiveBgImage.visibility = android.view.View.VISIBLE
+        } else {
+            binding.chatBgImage.visibility = android.view.View.GONE
+            binding.immersiveBgImage.visibility = android.view.View.GONE
+        }
+    }
+
+    private fun updateWorldTheme(world: World) {
+        val uri = BackgroundManager.get(this, world.name)
+        if (uri != null) {
+            binding.root.background = null
+            binding.chatBgImage.setImageURI(uri)
+            binding.chatBgImage.visibility = android.view.View.VISIBLE
+            binding.immersiveBgImage.setImageURI(uri)
+            binding.immersiveBgImage.visibility = android.view.View.VISIBLE
+        } else {
+            binding.chatBgImage.visibility = android.view.View.GONE
+            binding.immersiveBgImage.visibility = android.view.View.GONE
+            val bgRes = when (world) {
+                World.MODERN -> R.drawable.bg_modern
+                World.MEDIEVAL -> R.drawable.bg_medieval
+                World.SCIFI -> R.drawable.bg_scifi
+                World.WESTERN -> R.drawable.bg_western
+                World.BEACH -> R.drawable.bg_beach
+                World.CYBERPUNK -> R.drawable.bg_cyberpunk
+            }
+            binding.root.setBackgroundResource(bgRes)
+            binding.immersiveOverlay.setBackgroundResource(bgRes)
+        }
+
+        val accent = when (world) {
+            World.MODERN -> 0xFF7B5EA7.toInt()
+            World.MEDIEVAL -> 0xFF8B4513.toInt()
+            World.SCIFI -> 0xFF00B4D8.toInt()
+            World.WESTERN -> 0xFFB8730A.toInt()
+            World.BEACH -> 0xFF00897B.toInt()
+            World.CYBERPUNK -> 0xFFE040FB.toInt()
+        }
+        binding.sendButton.backgroundTintList = android.content.res.ColorStateList.valueOf(accent)
+        binding.worldLabel.setTextColor(accent)
     }
 
     override fun onDestroy() {
