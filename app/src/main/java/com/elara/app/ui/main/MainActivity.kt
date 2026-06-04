@@ -45,6 +45,7 @@ class MainActivity : AppCompatActivity() {
         setupInput()
         setupVoice()
         setupObservers()
+        loadVoiceSettings()
 
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO)
             != PackageManager.PERMISSION_GRANTED) {
@@ -53,7 +54,10 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setupRecycler() {
-        adapter = MessageAdapter()
+        adapter = MessageAdapter(lifecycleScope) { text ->
+            voiceManager.speak(text)
+            binding.immersiveStatusText.text = "Repeat after me..."
+        }
         val layoutManager = LinearLayoutManager(this).apply { stackFromEnd = true }
         binding.chatRecycler.layoutManager = layoutManager
         binding.chatRecycler.adapter = adapter
@@ -73,6 +77,9 @@ class MainActivity : AppCompatActivity() {
         binding.personalityLabel.setOnClickListener { showPersonalitySheet() }
         binding.clearButton.setOnClickListener { viewModel.clearHistory() }
         binding.settingsButton.setOnClickListener { showChatSettings() }
+        binding.wordsButton.setOnClickListener {
+            startActivity(android.content.Intent(this, com.elara.app.ui.words.WordsActivity::class.java))
+        }
 
         // Immersive toggle
         binding.immersiveToggle.setOnClickListener { enterImmersive() }
@@ -273,9 +280,19 @@ class MainActivity : AppCompatActivity() {
 
     private var currentFontSize = 15f
 
+    private fun loadVoiceSettings() {
+        voiceManager.pitch = VoiceSettings.getPitch(this)
+        voiceManager.speechRate = VoiceSettings.getRate(this)
+        voiceManager.applyVoiceSettings()
+    }
+
     private fun showChatSettings() {
         val worldName = viewModel.uiState.value.currentWorld.name
-        ChatSettingsSheet(currentFontSize, worldName,
+        ChatSettingsSheet(
+            currentFontSize = currentFontSize,
+            currentWorldName = worldName,
+            currentPitch = VoiceSettings.getPitch(this),
+            currentRate = VoiceSettings.getRate(this),
             onFontSizeChanged = { size ->
                 currentFontSize = size
                 adapter.setFontSize(size)
@@ -283,6 +300,13 @@ class MainActivity : AppCompatActivity() {
             onBackgroundPicked = { uri ->
                 BackgroundManager.save(this, worldName, uri)
                 applyBackground(worldName)
+            },
+            onVoiceChanged = { pitch, rate ->
+                VoiceSettings.savePitch(this, pitch)
+                VoiceSettings.saveRate(this, rate)
+                voiceManager.pitch = pitch
+                voiceManager.speechRate = rate
+                voiceManager.applyVoiceSettings()
             }
         ).show(supportFragmentManager, "settings")
     }

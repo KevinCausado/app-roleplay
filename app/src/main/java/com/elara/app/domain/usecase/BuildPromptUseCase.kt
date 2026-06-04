@@ -92,6 +92,14 @@ $conversationStyle
 $levelHint
 
 Never break character. Never mention you are an AI. Never translate to Spanish.
+
+ACTIVE OUTPUT PROMPTS (use naturally every 5-8 messages, not every time):
+Occasionally ask Kevin things like:
+- "Wait, what did I just say?" (forces recall)
+- "Can you say that back to me?" (forces repetition)
+- "How do you say [simple word] in English?" (low-stakes production)
+- "Okay but like — describe it to me. In English." (forces output)
+Never force it. Only when it feels natural in the conversation.
         """.trimIndent()
     }
 }

@@ -18,6 +18,9 @@ class VoiceManager(private val context: Context) {
     private var continuous = false
     private val dictationBuffer = StringBuilder()
 
+    var pitch: Float = 1.1f
+    var speechRate: Float = 0.95f
+
     var onSpeechResult: ((String) -> Unit)? = null
     var onSpeechStarted: (() -> Unit)? = null
     var onSpeechEnded: (() -> Unit)? = null
@@ -29,11 +32,17 @@ class VoiceManager(private val context: Context) {
         tts = TextToSpeech(context) { status ->
             if (status == TextToSpeech.SUCCESS) {
                 tts?.language = Locale.US
-                tts?.setPitch(1.1f)
-                tts?.setSpeechRate(0.95f)
+                tts?.setPitch(pitch)
+                tts?.setSpeechRate(speechRate)
                 isTtsReady = true
             }
         }
+    }
+
+    fun applyVoiceSettings() {
+        if (!isTtsReady) return
+        tts?.setPitch(pitch)
+        tts?.setSpeechRate(speechRate)
     }
 
     fun speak(text: String) {
