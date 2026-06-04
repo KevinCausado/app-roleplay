@@ -12,6 +12,7 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.elara.app.databinding.ActivityMainBinding
+import com.elara.app.domain.model.Personality
 import com.elara.app.ui.conversation.ConversationViewModel
 import com.elara.app.ui.conversation.VoiceManager
 import kotlinx.coroutines.launch
@@ -61,9 +62,12 @@ class MainActivity : AppCompatActivity() {
             if (actionId == EditorInfo.IME_ACTION_SEND) { sendText(); true } else false
         }
 
-        // Tap avatar to open worlds selector
+        // Tap avatar or world label to open worlds selector
         binding.avatarImage.setOnClickListener { showWorldsSheet() }
         binding.worldLabel.setOnClickListener { showWorldsSheet() }
+
+        // Tap personality label to open personality selector
+        binding.personalityLabel.setOnClickListener { showPersonalitySheet() }
 
         // Long press clear button to reset
         binding.clearButton.setOnClickListener {
@@ -76,6 +80,13 @@ class MainActivity : AppCompatActivity() {
         WorldsBottomSheet(current) { world ->
             viewModel.setWorld(world)
         }.show(supportFragmentManager, "worlds")
+    }
+
+    private fun showPersonalitySheet() {
+        val current = viewModel.uiState.value.currentPersonality
+        PersonalityBottomSheet(current) { personality ->
+            viewModel.setPersonality(personality)
+        }.show(supportFragmentManager, "personality")
     }
 
     private fun sendText() {
@@ -132,6 +143,9 @@ class MainActivity : AppCompatActivity() {
 
                 // World label
                 binding.worldLabel.text = "${state.currentWorld.emoji} ${state.currentWorld.displayName}"
+
+                // Personality label
+                binding.personalityLabel.text = "${state.currentPersonality.emoji} ${state.currentPersonality.displayName}"
 
                 // Escalation dots
                 binding.escalationText.text = "❤".repeat(state.escalationLevel.coerceAtMost(9))

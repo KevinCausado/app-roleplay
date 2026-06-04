@@ -91,6 +91,23 @@
                     android:clickable="true"
                     android:focusable="true" />
 
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text=" · "
+                    android:textColor="#444455"
+                    android:textSize="11sp" />
+
+                <TextView
+                    android:id="@+id/personalityLabel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="😊 Friendly"
+                    android:textColor="#E94560"
+                    android:textSize="11sp"
+                    android:clickable="true"
+                    android:focusable="true" />
+
             </LinearLayout>
 
         </LinearLayout>

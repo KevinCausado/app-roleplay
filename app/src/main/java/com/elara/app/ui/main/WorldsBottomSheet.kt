@@ -21,6 +21,8 @@ class WorldsBottomSheet(
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        val title = view.findViewById<TextView>(R.id.worldsTitle)
+        title.text = "Choose World"
         val recycler = view.findViewById<RecyclerView>(R.id.worldsRecycler)
         recycler.layoutManager = LinearLayoutManager(context)
         recycler.adapter = WorldAdapter(currentWorld) { world ->

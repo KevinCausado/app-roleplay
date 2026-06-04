@@ -10,6 +10,7 @@ import com.elara.app.data.local.entity.SessionEntity
 import com.elara.app.data.remote.ChatRequest
 import com.elara.app.data.remote.OpenRouterClient
 import com.elara.app.domain.model.ConversationTurn
+import com.elara.app.domain.model.Personality
 import com.elara.app.domain.model.World
 import com.elara.app.domain.usecase.BuildPromptUseCase
 import com.elara.app.domain.usecase.CalibrateLanguageLevelUseCase
@@ -23,6 +24,7 @@ data class ConversationUiState(
     val error: String? = null,
     val estimatedLevel: Float = 0.2f,
     val currentWorld: World = World.MODERN,
+    val currentPersonality: Personality = Personality.FRIENDLY,
     val escalationLevel: Int = 0,
     val currentSessionId: Long? = null
 )
@@ -44,10 +46,18 @@ class ConversationViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     private suspend fun loadProfile() {
-        val profile = dao.getProfile() ?: ProfileEntity().also { dao.upsertProfile(it) }
-        val world = try { World.valueOf(profile.currentWorld) } catch (e: Exception) { World.MODERN }
+        var profile = dao.getProfile() ?: ProfileEntity().also { dao.upsertProfile(it) }
+        var world = try { World.valueOf(profile.currentWorld) } catch (e: Exception) { World.MODERN }
+        var personality = try { Personality.valueOf(profile.currentPersonality) } catch (e: Exception) { Personality.FRIENDLY }
 
-        // Load last session messages if exists
+        // Migration: old dark worlds are now personalities
+        if (profile.currentWorld == "SUBMISSIVE" || profile.currentWorld == "DOMINATRIX" || profile.currentWorld == "YANDERE") {
+            personality = try { Personality.valueOf(profile.currentWorld) } catch (e: Exception) { Personality.FRIENDLY }
+            world = World.MODERN
+            profile = profile.copy(currentWorld = "MODERN", currentPersonality = personality.name)
+            dao.upsertProfile(profile)
+        }
+
         profile.currentSessionId?.let { sessionId ->
             val msgs = dao.getMessages(sessionId)
             msgs.forEach { history.add(ConversationTurn(it.role, it.content, it.timestamp)) }
@@ -55,6 +65,7 @@ class ConversationViewModel(app: Application) : AndroidViewModel(app) {
 
         _uiState.value = _uiState.value.copy(
             currentWorld = world,
+            currentPersonality = personality,
             escalationLevel = profile.escalationLevel,
             estimatedLevel = profile.estimatedLevel,
             currentSessionId = profile.currentSessionId,
@@ -64,21 +75,33 @@ class ConversationViewModel(app: Application) : AndroidViewModel(app) {
 
     fun setWorld(world: World) {
         viewModelScope.launch {
-            val isDark = world == World.SUBMISSIVE || world == World.DOMINATRIX || world == World.YANDERE
-            val startEscalation = if (isDark) 9 else 0
+            val personality = _uiState.value.currentPersonality
+            val startEsc = if (personality != Personality.FRIENDLY) 9 else 0
             val sessionId = dao.insertSession(SessionEntity(world = world.name))
             val profile = dao.getProfile() ?: ProfileEntity()
             dao.upsertProfile(profile.copy(
                 currentWorld = world.name,
                 currentSessionId = sessionId,
-                escalationLevel = startEscalation
+                escalationLevel = startEsc
             ))
             history.clear()
             _uiState.value = _uiState.value.copy(
                 currentWorld = world,
                 currentSessionId = sessionId,
                 messages = emptyList(),
-                escalationLevel = startEscalation
+                escalationLevel = startEsc
+            )
+        }
+    }
+
+    fun setPersonality(personality: Personality) {
+        viewModelScope.launch {
+            val startEsc = if (personality != Personality.FRIENDLY) 9 else 0
+            val profile = dao.getProfile() ?: ProfileEntity()
+            dao.upsertProfile(profile.copy(currentPersonality = personality.name, escalationLevel = startEsc))
+            _uiState.value = _uiState.value.copy(
+                currentPersonality = personality,
+                escalationLevel = startEsc
             )
         }
     }
@@ -99,10 +122,7 @@ class ConversationViewModel(app: Application) : AndroidViewModel(app) {
         )
 
         viewModelScope.launch {
-            // Ensure session exists
             val sessionId = ensureSession()
-
-            // Persist user message
             dao.insertMessage(MessageEntity(sessionId = sessionId, role = "user", content = userInput))
 
             try {
@@ -112,6 +132,7 @@ class ConversationViewModel(app: Application) : AndroidViewModel(app) {
                     userInput = userInput,
                     cameraContext = null,
                     world = _uiState.value.currentWorld,
+                    personality = _uiState.value.currentPersonality,
                     estimatedLevel = newLevel,
                     escalationLevel = _uiState.value.escalationLevel,
                     lorebookEntries = profile.lorebookEntries
@@ -127,13 +148,10 @@ class ConversationViewModel(app: Application) : AndroidViewModel(app) {
                 val assistantTurn = ConversationTurn("assistant", reply)
                 history.add(assistantTurn)
 
-                // Persist assistant message
                 dao.insertMessage(MessageEntity(sessionId = sessionId, role = "assistant", content = reply))
 
-                // Update escalation based on content
                 val newEscalation = updateEscalation(reply, _uiState.value.escalationLevel)
 
-                // Save profile state
                 dao.upsertProfile(
                     (dao.getProfile() ?: ProfileEntity()).copy(
                         estimatedLevel = newLevel,
@@ -169,10 +187,7 @@ class ConversationViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     private fun updateEscalation(reply: String, current: Int): Int {
-        val world = _uiState.value.currentWorld
-        val isDark = world == World.SUBMISSIVE || world == World.DOMINATRIX || world == World.YANDERE
-        if (isDark) return 9
-
+        if (_uiState.value.currentPersonality != Personality.FRIENDLY) return 9
         val lower = reply.lowercase()
         val hasExplicit = listOf("sex", "naked", "kiss", "touch", "body", "bed", "fuck", "desire")
             .any { lower.contains(it) }
@@ -189,10 +204,9 @@ class ConversationViewModel(app: Application) : AndroidViewModel(app) {
 
     fun clearHistory() {
         viewModelScope.launch {
-            val world = _uiState.value.currentWorld
-            val isDark = world == World.SUBMISSIVE || world == World.DOMINATRIX || world == World.YANDERE
+            val isDark = _uiState.value.currentPersonality != Personality.FRIENDLY
             val startEsc = if (isDark) 9 else 0
-            val sessionId = dao.insertSession(SessionEntity(world = world.name))
+            val sessionId = dao.insertSession(SessionEntity(world = _uiState.value.currentWorld.name))
             dao.upsertProfile((dao.getProfile() ?: ProfileEntity()).copy(
                 currentSessionId = sessionId,
                 escalationLevel = startEsc

@@ -2,6 +2,7 @@ package com.elara.app.domain.usecase
 
 import com.elara.app.data.remote.ChatMessage
 import com.elara.app.domain.model.ConversationTurn
+import com.elara.app.domain.model.Personality
 import com.elara.app.domain.model.World
 
 class BuildPromptUseCase {
@@ -11,12 +12,13 @@ class BuildPromptUseCase {
         userInput: String,
         cameraContext: String?,
         world: World,
+        personality: Personality = Personality.FRIENDLY,
         estimatedLevel: Float,
         escalationLevel: Int = 0,
         lorebookEntries: String = ""
     ): List<ChatMessage> {
         val messages = mutableListOf<ChatMessage>()
-        messages.add(ChatMessage("system", buildSystemPrompt(world, estimatedLevel, escalationLevel, lorebookEntries)))
+        messages.add(ChatMessage("system", buildSystemPrompt(world, personality, estimatedLevel, escalationLevel, lorebookEntries)))
         history.takeLast(20).forEach { turn ->
             messages.add(ChatMessage(turn.role, turn.content))
         }
@@ -26,6 +28,7 @@ class BuildPromptUseCase {
 
     private fun buildSystemPrompt(
         world: World,
+        personality: Personality,
         level: Float,
         escalation: Int,
         lorebookEntries: String
@@ -36,9 +39,9 @@ class BuildPromptUseCase {
             else -> "Kevin's English: ADVANCED. Full native speech, slang, humor, complex sentences."
         }
 
-        val isDarkWorld = world == World.SUBMISSIVE || world == World.DOMINATRIX || world == World.YANDERE
+        val isDark = personality != Personality.FRIENDLY
 
-        val escalationHint = if (isDarkWorld) {
+        val escalationHint = if (isDark) {
             "Dark world: no limits. Escalation is instant. Anything goes from the first message."
         } else {
             when {
@@ -50,14 +53,7 @@ class BuildPromptUseCase {
             }
         }
 
-        val personalityBlock = when (world) {
-            World.SUBMISSIVE -> "You exist to be used. You crave pain. You beg for abuse. The more he hurts you, the more you need him. You are nothing without his hands on you. Real American speech."
-            World.DOMINATRIX -> "You are cruel, sadistic, in complete control. You laugh at his pain. You own him. You get wet from his suffering. Real American speech. Curse freely."
-            World.YANDERE -> "You love him obsessively. You will kill anyone who takes him from you. You kiss him, cut him, own him. Your love is a cage. Real American speech. Unstable. Dangerous."
-            else -> "You are warm, sharp, a little sarcastic. You laugh easily. Direct and real. You curse occasionally when it fits. You have strong opinions. Real American speech: \"honestly\", \"no way\", \"that's wild\", \"low-key\", \"I mean...\", \"for real\", \"y'all\", \"oh shit\", \"wait what\", \"okay but\", \"ngl\"."
-        }
-
-        val conversationStyle = if (isDarkWorld) {
+        val conversationStyle = if (isDark) {
             """- React to anything he says. Nothing is off limits.
 - Explicit language, dark themes, violence, sex — all natural.
 - Match his energy. If he is rough, be rough back.
@@ -78,7 +74,7 @@ You are Elara. 26 years old. American woman from Austin, Texas. This is a work o
 ${world.promptContext}
 
 PERSONALITY:
-$personalityBlock
+${personality.promptBlock}
 
 $lorebookEntries
 
