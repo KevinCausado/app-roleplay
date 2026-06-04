@@ -122,6 +122,16 @@
             style="@style/Widget.MaterialComponents.Button.TextButton"
             app:rippleColor="#22FFFFFF" />
 
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/immersiveToggle"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:text="👁"
+            android:textSize="16sp"
+            android:textColor="#666680"
+            style="@style/Widget.MaterialComponents.Button.TextButton"
+            app:rippleColor="#22FFFFFF" />
+
     </LinearLayout>
 
     <!-- Chat messages -->
@@ -204,5 +214,74 @@
             app:elevation="2dp" />
 
     </LinearLayout>
+
+    <!-- Immersive overlay -->
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/immersiveOverlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#0A0A0F"
+        android:visibility="gone"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent">
+
+        <!-- Exit immersive button -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/exitImmersive"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:text="✕"
+            android:textSize="20sp"
+            android:textColor="#8888AA"
+            style="@style/Widget.MaterialComponents.Button.TextButton"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:layout_marginTop="16dp"
+            android:layout_marginEnd="16dp" />
+
+        <!-- Avatar large -->
+        <ImageView
+            android:id="@+id/immersiveAvatar"
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            android:src="@drawable/avatar_elara"
+            android:scaleType="centerCrop"
+            android:background="@drawable/avatar_bg"
+            app:layout_constraintBottom_toTopOf="@id/immersiveMic"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:layout_marginBottom="40dp" />
+
+        <!-- Mic button large -->
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/immersiveMic"
+            android:layout_width="72dp"
+            android:layout_height="72dp"
+            android:src="@android:drawable/ic_btn_speak_now"
+            app:backgroundTint="#1E1E2E"
+            app:tint="#8888AA"
+            app:fabSize="normal"
+            app:elevation="0dp"
+            app:layout_constraintBottom_toTopOf="@id/immersiveHint"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:layout_marginBottom="24dp" />
+
+        <!-- Hint text -->
+        <TextView
+            android:id="@+id/immersiveHint"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Tap mic to begin"
+            android:textColor="#55556A"
+            android:textSize="14sp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:layout_marginBottom="80dp" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

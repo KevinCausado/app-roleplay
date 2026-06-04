@@ -121,7 +121,7 @@ class VoiceManager(private val context: Context) {
         stt = null
     }
 
-    fun stopDictation() {
+    fun stopListening() {
         continuous = false
         stopInternal()
         dictationBuffer.clear()

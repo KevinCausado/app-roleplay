@@ -26,6 +26,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var adapter: MessageAdapter
     private lateinit var voiceManager: VoiceManager
     private var isListening = false
+    private var isImmersive = false
+    private var immersiveLoopActive = false
 
     private val permissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
@@ -62,17 +64,15 @@ class MainActivity : AppCompatActivity() {
             if (actionId == EditorInfo.IME_ACTION_SEND) { sendText(); true } else false
         }
 
-        // Tap avatar or world label to open worlds selector
         binding.avatarImage.setOnClickListener { showWorldsSheet() }
         binding.worldLabel.setOnClickListener { showWorldsSheet() }
-
-        // Tap personality label to open personality selector
         binding.personalityLabel.setOnClickListener { showPersonalitySheet() }
+        binding.clearButton.setOnClickListener { viewModel.clearHistory() }
 
-        // Long press clear button to reset
-        binding.clearButton.setOnClickListener {
-            viewModel.clearHistory()
-        }
+        // Immersive toggle
+        binding.immersiveToggle.setOnClickListener { enterImmersive() }
+        binding.exitImmersive.setOnClickListener { exitImmersive() }
+        binding.immersiveMic.setOnClickListener { toggleImmersiveMic() }
     }
 
     private fun showWorldsSheet() {
@@ -97,9 +97,10 @@ class MainActivity : AppCompatActivity() {
         viewModel.sendMessage(text)
     }
 
+    // Normal mode mic
     private fun toggleMic() {
         if (isListening) {
-            voiceManager.stopDictation()
+            voiceManager.stopListening()
             isListening = false
             binding.micButton.setImageResource(android.R.drawable.ic_btn_speak_now)
         } else {
@@ -110,17 +111,80 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    // Immersive mode
+    private fun enterImmersive() {
+        isImmersive = true
+        binding.immersiveOverlay.visibility = android.view.View.VISIBLE
+        binding.chatRecycler.visibility = android.view.View.GONE
+        binding.inputContainer.visibility = android.view.View.GONE
+        binding.header.visibility = android.view.View.GONE
+        binding.immersiveHint.text = "Tap mic to begin"
+        binding.immersiveMic.setImageResource(android.R.drawable.ic_btn_speak_now)
+    }
+
+    private fun exitImmersive() {
+        immersiveLoopActive = false
+        isImmersive = false
+        voiceManager.stopListening()
+        voiceManager.stopSpeaking()
+        binding.immersiveOverlay.visibility = android.view.View.GONE
+        binding.chatRecycler.visibility = android.view.View.VISIBLE
+        binding.inputContainer.visibility = android.view.View.VISIBLE
+        binding.header.visibility = android.view.View.VISIBLE
+        binding.immersiveMic.setImageResource(android.R.drawable.ic_btn_speak_now)
+    }
+
+    private fun toggleImmersiveMic() {
+        if (immersiveLoopActive) {
+            stopImmersiveLoop()
+        } else {
+            startImmersiveLoop()
+        }
+    }
+
+    private fun startImmersiveLoop() {
+        immersiveLoopActive = true
+        binding.immersiveHint.text = "Listening..."
+        voiceManager.stopSpeaking()
+        voiceManager.startListening()
+        binding.immersiveMic.setImageResource(android.R.drawable.ic_media_pause)
+    }
+
+    private fun stopImmersiveLoop() {
+        immersiveLoopActive = false
+        voiceManager.stopListening()
+        voiceManager.stopSpeaking()
+        binding.immersiveHint.text = "Tap mic to begin"
+        binding.immersiveMic.setImageResource(android.R.drawable.ic_btn_speak_now)
+    }
+
     private fun setupVoice() {
         voiceManager = VoiceManager(this)
+
+        // Dictation fills input in normal mode
         voiceManager.onDictationResult = { text ->
-            binding.messageInput.setText(text)
-            binding.messageInput.setSelection(text.length)
+            if (!isImmersive) {
+                binding.messageInput.setText(text)
+                binding.messageInput.setSelection(text.length)
+            }
         }
-        voiceManager.onListeningStateChanged = { listening ->
-            isListening = listening
-            val icon = if (listening) android.R.drawable.ic_media_pause
-                       else android.R.drawable.ic_btn_speak_now
-            binding.micButton.setImageResource(icon)
+
+        // Single-shot result: auto-send in immersive mode
+        voiceManager.onSpeechResult = { text ->
+            if (isImmersive && immersiveLoopActive) {
+                if (text.isNotBlank()) {
+                    viewModel.sendMessage(text)
+                }
+            }
+        }
+
+        voiceManager.onTtsDone = {
+            runOnUiThread {
+                if (isImmersive && immersiveLoopActive) {
+                    binding.immersiveHint.text = "Listening..."
+                    voiceManager.startListening()
+                }
+            }
         }
     }
 
@@ -132,20 +196,23 @@ class MainActivity : AppCompatActivity() {
                     binding.chatRecycler.scrollToPosition(adapter.itemCount - 1)
                 }
 
-                // Status
                 binding.statusText.text = if (state.isLoading) "● typing..." else "● online"
                 binding.statusText.setTextColor(
                     if (state.isLoading) 0xFFFFAA33.toInt() else 0xFF4CAF50.toInt()
                 )
-
-                // World label
                 binding.worldLabel.text = "${state.currentWorld.emoji} ${state.currentWorld.displayName}"
-
-                // Personality label
                 binding.personalityLabel.text = "${state.currentPersonality.emoji} ${state.currentPersonality.displayName}"
-
-                // Escalation dots
                 binding.escalationText.text = "❤".repeat(state.escalationLevel.coerceAtMost(9))
+
+                // Immersive hint
+                if (isImmersive) {
+                    binding.immersiveHint.text = when {
+                        state.isLoading -> "Thinking..."
+                        state.messages.lastOrNull()?.role == "assistant" && !state.isLoading -> "Speaking..."
+                        immersiveLoopActive -> "Listening..."
+                        else -> "Tap mic to begin"
+                    }
+                }
 
                 // Auto-speak last assistant message
                 if (!state.isLoading && state.messages.isNotEmpty()) {
@@ -157,6 +224,7 @@ class MainActivity : AppCompatActivity() {
 
                 state.error?.let {
                     Toast.makeText(this@MainActivity, "Error: $it", Toast.LENGTH_SHORT).show()
+                    if (isImmersive) stopImmersiveLoop()
                 }
             }
         }
