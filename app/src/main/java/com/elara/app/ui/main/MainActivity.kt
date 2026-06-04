@@ -46,6 +46,7 @@ class MainActivity : AppCompatActivity() {
         setupVoice()
         setupObservers()
         loadVoiceSettings()
+        updateStreakDisplay()
 
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO)
             != PackageManager.PERMISSION_GRANTED) {
@@ -114,6 +115,13 @@ class MainActivity : AppCompatActivity() {
         binding.messageInput.text?.clear()
         voiceManager.stopSpeaking()
         viewModel.sendMessage(text)
+        StreakManager.recordToday(this)
+        updateStreakDisplay()
+    }
+
+    private fun updateStreakDisplay() {
+        val streak = StreakManager.getStreak(this)
+        binding.streakText.text = if (streak > 1) "🔥$streak" else ""
     }
 
     // Normal mode mic

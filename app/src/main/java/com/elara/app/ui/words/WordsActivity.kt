@@ -14,6 +14,7 @@ import com.elara.app.R
 import com.elara.app.data.local.AppDatabase
 import com.elara.app.data.local.entity.WordEntity
 import com.elara.app.databinding.ActivityWordsBinding
+import com.elara.app.ui.main.StreakManager
 import kotlinx.coroutines.launch
 
 class WordsActivity : AppCompatActivity() {
@@ -33,7 +34,8 @@ class WordsActivity : AppCompatActivity() {
             val words = db.wordDao().getAll()
             val due = db.wordDao().getDueForReview()
 
-            binding.wordCount.text = "${words.size} words"
+            val streak = StreakManager.getStreak(this@WordsActivity)
+            binding.wordCount.text = "${words.size} words · ${if (streak > 0) "🔥$streak day streak" else "no streak yet"}"
             binding.statTotal.text = words.size.toString()
             binding.statDue.text = due.size.toString()
             binding.statLevel.text = levelFromCount(words.size)
@@ -47,11 +49,6 @@ class WordsActivity : AppCompatActivity() {
 
             binding.wordsRecycler.adapter = WordsAdapter(words)
         }
-    }
-
-    override fun onResume() {
-        super.onResume()
-        recreate()
     }
 
     private fun levelFromCount(count: Int) = when {

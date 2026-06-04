@@ -9,12 +9,14 @@ import com.elara.app.data.local.entity.ProfileEntity
 import com.elara.app.data.local.entity.SessionEntity
 import com.elara.app.data.remote.ChatRequest
 import com.elara.app.data.remote.OpenRouterClient
+import com.elara.app.data.remote.ChatMessage
 import com.elara.app.domain.model.Character
 import com.elara.app.domain.model.ConversationTurn
 import com.elara.app.domain.model.Personality
 import com.elara.app.domain.model.World
 import com.elara.app.domain.usecase.BuildPromptUseCase
 import com.elara.app.domain.usecase.CalibrateLanguageLevelUseCase
+import com.elara.app.domain.usecase.UpdateCharacterMemoryUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -35,13 +37,16 @@ class ConversationViewModel(app: Application) : AndroidViewModel(app) {
 
     private val db = AppDatabase.get(app)
     private val dao = db.sessionDao()
+    private val memoryDao = db.characterMemoryDao()
 
     private val _uiState = MutableStateFlow(ConversationUiState())
     val uiState: StateFlow<ConversationUiState> = _uiState
 
     private val buildPrompt = BuildPromptUseCase()
     private val calibrate = CalibrateLanguageLevelUseCase()
+    private val updateMemory = UpdateCharacterMemoryUseCase(memoryDao)
     private val history = mutableListOf<ConversationTurn>()
+    private var messagesSinceMemoryUpdate = 0
 
     init {
         viewModelScope.launch { loadProfile() }
@@ -174,6 +179,8 @@ class ConversationViewModel(app: Application) : AndroidViewModel(app) {
 
             try {
                 val profile = dao.getProfile() ?: ProfileEntity()
+                val charId = _uiState.value.currentCharacter.name
+                val charMemory = memoryDao.get(charId)?.memory ?: ""
                 val messages = buildPrompt.build(
                     history = history.dropLast(1),
                     userInput = userInput,
@@ -183,7 +190,8 @@ class ConversationViewModel(app: Application) : AndroidViewModel(app) {
                     character = _uiState.value.currentCharacter,
                     estimatedLevel = newLevel,
                     escalationLevel = _uiState.value.escalationLevel,
-                    lorebookEntries = profile.lorebookEntries
+                    lorebookEntries = profile.lorebookEntries,
+                    characterMemory = charMemory
                 )
 
                 val response = OpenRouterClient.api.chat(
@@ -199,6 +207,13 @@ class ConversationViewModel(app: Application) : AndroidViewModel(app) {
                 dao.insertMessage(MessageEntity(sessionId = sessionId, role = "assistant", content = reply))
 
                 val newEscalation = updateEscalation(reply, _uiState.value.escalationLevel)
+
+                messagesSinceMemoryUpdate++
+                if (messagesSinceMemoryUpdate >= 8) {
+                    messagesSinceMemoryUpdate = 0
+                    val chatMessages = history.map { ChatMessage(it.role, it.content) }
+                    updateMemory.update(_uiState.value.currentCharacter.name, chatMessages)
+                }
 
                 dao.upsertProfile(
                     (dao.getProfile() ?: ProfileEntity()).copy(

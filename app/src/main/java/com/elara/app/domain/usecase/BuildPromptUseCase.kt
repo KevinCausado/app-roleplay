@@ -17,10 +17,11 @@ class BuildPromptUseCase {
         character: Character = Character.ELARA,
         estimatedLevel: Float,
         escalationLevel: Int = 0,
-        lorebookEntries: String = ""
+        lorebookEntries: String = "",
+        characterMemory: String = ""
     ): List<ChatMessage> {
         val messages = mutableListOf<ChatMessage>()
-        messages.add(ChatMessage("system", buildSystemPrompt(world, personality, character, estimatedLevel, escalationLevel, lorebookEntries)))
+        messages.add(ChatMessage("system", buildSystemPrompt(world, personality, character, estimatedLevel, escalationLevel, lorebookEntries, characterMemory)))
         history.takeLast(20).forEach { turn ->
             messages.add(ChatMessage(turn.role, turn.content))
         }
@@ -34,7 +35,8 @@ class BuildPromptUseCase {
         character: Character,
         level: Float,
         escalation: Int,
-        lorebookEntries: String
+        lorebookEntries: String,
+        characterMemory: String = ""
     ): String {
         val levelHint = when {
             level < 0.3f -> "Kevin's English: BEGINNER. Short sentences max 8 words. Simple vocabulary. Repeat key words naturally."
@@ -69,6 +71,10 @@ class BuildPromptUseCase {
 - Tease him. Flirt when it fits the stage. Be real."""
         }
 
+        val memoryBlock = if (characterMemory.isNotBlank()) {
+            "\nWHAT YOU KNOW ABOUT KEVIN (from previous conversations):\n$characterMemory\nUse this naturally — mention past things he told you when relevant. Don't dump it all at once.\n"
+        } else ""
+
         return """
 ${character.basePrompt}
 
@@ -77,6 +83,7 @@ ${world.promptContext}
 PERSONALITY OVERLAY:
 ${personality.promptBlock}
 
+$memoryBlock
 $lorebookEntries
 
 LANGUAGE CORRECTION (implicit — never explicit):
