@@ -11,7 +11,7 @@ import com.elara.app.data.local.entity.SessionEntity
 
 @Database(
     entities = [SessionEntity::class, MessageEntity::class, ProfileEntity::class],
-    version = 2,
+    version = 3,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {

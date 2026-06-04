@@ -7,6 +7,7 @@ import androidx.room.PrimaryKey
 data class SessionEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
     val world: String,
+    val personality: String = "FRIENDLY",
     val startTime: Long = System.currentTimeMillis(),
     val endTime: Long? = null,
     val escalationLevel: Int = 0

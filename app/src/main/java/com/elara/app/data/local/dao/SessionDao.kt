@@ -20,6 +20,9 @@ interface SessionDao {
     @Query("SELECT * FROM messages WHERE sessionId = :sessionId ORDER BY timestamp ASC")
     suspend fun getMessages(sessionId: Long): List<MessageEntity>
 
+    @Query("SELECT * FROM sessions WHERE world = :world AND personality = :personality ORDER BY startTime DESC LIMIT 1")
+    suspend fun getSessionByCombo(world: String, personality: String): SessionEntity?
+
     @Query("SELECT * FROM sessions ORDER BY startTime DESC LIMIT 1")
     suspend fun getLastSession(): SessionEntity?
 
