@@ -1,6 +1,8 @@
 package com.elara.app.ui.main
 
 import android.Manifest
+import android.accounts.AccountManager
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.view.inputmethod.EditorInfo
@@ -12,17 +14,36 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.elara.app.R
+import com.elara.app.data.remote.drive.ElaraDriveSync
 import com.elara.app.databinding.ActivityMainBinding
 import com.elara.app.domain.model.Character
 import com.elara.app.domain.model.Personality
 import com.elara.app.domain.model.World
 import com.elara.app.ui.conversation.ConversationViewModel
 import com.elara.app.ui.conversation.VoiceManager
+import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions
+import com.google.android.gms.common.api.Scope
+import com.google.api.services.drive.DriveScopes
 import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
+    private lateinit var driveSync: ElaraDriveSync
+
+    private val accountPickerLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == RESULT_OK) {
+            val accountName = result.data?.getStringExtra(AccountManager.KEY_ACCOUNT_NAME)
+            if (accountName != null) {
+                driveSync.driveService.setAccount(accountName)
+                Toast.makeText(this, "Connected: $accountName", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
     private val viewModel: ConversationViewModel by viewModels {
         androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.getInstance(application)
     }
@@ -41,6 +62,7 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        driveSync = ElaraDriveSync(this)
         setupRecycler()
         setupInput()
         setupVoice()
@@ -301,6 +323,7 @@ class MainActivity : AppCompatActivity() {
             currentWorldName = worldName,
             currentPitch = VoiceSettings.getPitch(this),
             currentRate = VoiceSettings.getRate(this),
+            driveAccountName = driveSync.driveService.getSavedAccountName(),
             onFontSizeChanged = { size ->
                 currentFontSize = size
                 adapter.setFontSize(size)
@@ -315,8 +338,27 @@ class MainActivity : AppCompatActivity() {
                 voiceManager.pitch = pitch
                 voiceManager.speechRate = rate
                 voiceManager.applyVoiceSettings()
+            },
+            onDriveConnect = { launchAccountPicker() },
+            onDrivePush = {
+                lifecycleScope.launch {
+                    val ok = driveSync.pushAll()
+                    Toast.makeText(this@MainActivity, if (ok) "Backup done" else "Backup failed", Toast.LENGTH_SHORT).show()
+                }
+            },
+            onDrivePull = {
+                lifecycleScope.launch {
+                    val ok = driveSync.pullAll()
+                    Toast.makeText(this@MainActivity, if (ok) "Restored from Drive" else "Restore failed", Toast.LENGTH_SHORT).show()
+                }
             }
         ).show(supportFragmentManager, "settings")
+    }
+
+    private fun launchAccountPicker() {
+        val credential = com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential
+            .usingOAuth2(this, listOf(DriveScopes.DRIVE_FILE))
+        accountPickerLauncher.launch(credential.newChooseAccountIntent())
     }
 
     private fun applyBackground(worldName: String) {

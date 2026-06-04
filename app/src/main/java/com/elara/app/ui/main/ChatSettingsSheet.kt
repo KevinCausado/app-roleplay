@@ -21,7 +21,11 @@ class ChatSettingsSheet(
     private val currentRate: Float,
     private val onFontSizeChanged: (Float) -> Unit,
     private val onBackgroundPicked: (Uri) -> Unit,
-    private val onVoiceChanged: (pitch: Float, rate: Float) -> Unit
+    private val onVoiceChanged: (pitch: Float, rate: Float) -> Unit,
+    private val onDriveConnect: (() -> Unit)? = null,
+    private val onDrivePush: (() -> Unit)? = null,
+    private val onDrivePull: (() -> Unit)? = null,
+    private val driveAccountName: String? = null
 ) : BottomSheetDialogFragment() {
 
     private val pickImage = registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
@@ -93,5 +97,20 @@ class ChatSettingsSheet(
             override fun onStartTrackingTouch(seekBar: SeekBar?) {}
             override fun onStopTrackingTouch(seekBar: SeekBar?) {}
         })
+
+        // Drive
+        val driveAccountTv = view.findViewById<TextView>(R.id.driveAccountText)
+        driveAccountTv.text = driveAccountName ?: "Not connected"
+        view.findViewById<Button>(R.id.driveConnectButton).setOnClickListener {
+            onDriveConnect?.invoke(); dismiss()
+        }
+        view.findViewById<Button>(R.id.drivePushButton).apply {
+            isEnabled = driveAccountName != null
+            setOnClickListener { onDrivePush?.invoke(); dismiss() }
+        }
+        view.findViewById<Button>(R.id.drivePullButton).apply {
+            isEnabled = driveAccountName != null
+            setOnClickListener { onDrivePull?.invoke(); dismiss() }
+        }
     }
 }

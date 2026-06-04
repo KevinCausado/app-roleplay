@@ -153,5 +153,69 @@
             android:progressTint="#7B5EA7"
             android:thumbTint="#7B5EA7" />
 
+        <View android:layout_width="match_parent" android:layout_height="1dp"
+            android:background="#1A1A2E" android:layout_marginVertical="16dp"
+            android:layout_marginHorizontal="20dp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Google Drive Backup"
+            android:textColor="#9999BB"
+            android:textSize="13sp"
+            android:paddingHorizontal="20dp"
+            android:paddingBottom="12dp" />
+
+        <TextView
+            android:id="@+id/driveAccountText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Not connected"
+            android:textColor="#44445A"
+            android:textSize="12sp"
+            android:paddingHorizontal="20dp"
+            android:paddingBottom="8dp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginHorizontal="20dp"
+            android:layout_marginBottom="16dp">
+
+            <Button
+                android:id="@+id/driveConnectButton"
+                android:layout_width="0dp"
+                android:layout_height="48dp"
+                android:layout_weight="1"
+                android:layout_marginEnd="8dp"
+                android:text="Connect"
+                android:textColor="#FFFFFF"
+                android:textSize="12sp"
+                android:backgroundTint="#2A2A45" />
+
+            <Button
+                android:id="@+id/drivePushButton"
+                android:layout_width="0dp"
+                android:layout_height="48dp"
+                android:layout_weight="1"
+                android:layout_marginEnd="8dp"
+                android:text="Backup"
+                android:textColor="#FFFFFF"
+                android:textSize="12sp"
+                android:backgroundTint="#7B5EA7" />
+
+            <Button
+                android:id="@+id/drivePullButton"
+                android:layout_width="0dp"
+                android:layout_height="48dp"
+                android:layout_weight="1"
+                android:text="Restore"
+                android:textColor="#FFFFFF"
+                android:textSize="12sp"
+                android:backgroundTint="#2A2A45" />
+
+        </LinearLayout>
+
     </LinearLayout>
 </ScrollView>
