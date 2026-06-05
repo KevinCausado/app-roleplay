@@ -33,11 +33,19 @@
             android:exported="false" />
 
         <activity
+            android:name=".ui.errors.ReviewErrorsActivity"
+            android:exported="false" />
+
+        <activity
             android:name=".ui.words.WordsActivity"
             android:exported="false" />
 
         <activity
             android:name=".ui.words.ReviewActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".ui.learning.LearningPathActivity"
             android:exported="false" />
 
         <activity

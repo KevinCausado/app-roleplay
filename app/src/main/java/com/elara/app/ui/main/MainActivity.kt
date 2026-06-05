@@ -4,6 +4,7 @@ import android.Manifest
 import android.accounts.AccountManager
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.Bitmap
 import android.os.Bundle
 import android.view.inputmethod.EditorInfo
 import android.widget.Toast
@@ -14,12 +15,14 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.elara.app.R
+import com.elara.app.data.remote.GeminiClient
 import com.elara.app.data.remote.drive.ElaraDriveSync
 import com.elara.app.notifications.NotificationHelper
 import com.elara.app.notifications.NotificationScheduler
 import com.elara.app.databinding.ActivityMainBinding
 import com.elara.app.domain.model.Character
 import com.elara.app.domain.model.Personality
+import com.elara.app.domain.model.Scenario
 import com.elara.app.domain.model.World
 import com.elara.app.ui.conversation.ConversationViewModel
 import com.elara.app.ui.conversation.VoiceManager
@@ -44,6 +47,23 @@ class MainActivity : AppCompatActivity() {
                 Toast.makeText(this, "Connected: $accountName", Toast.LENGTH_SHORT).show()
             }
         }
+    }
+
+    private val learningPathLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == RESULT_OK) {
+            val scenarioId = result.data?.getStringExtra("scenario_id") ?: return@registerForActivityResult
+            val scenario = Scenario.byId(scenarioId) ?: return@registerForActivityResult
+            viewModel.setScenario(scenario)
+            binding.messageInput.hint = "Reply to ${scenario.title}..."
+        }
+    }
+
+    private val cameraLauncher = registerForActivityResult(
+        ActivityResultContracts.TakePicturePreview()
+    ) { bitmap ->
+        if (bitmap != null) processPhoto(bitmap)
     }
 
     private val viewModel: ConversationViewModel by viewModels {
@@ -93,6 +113,10 @@ class MainActivity : AppCompatActivity() {
             != PackageManager.PERMISSION_GRANTED) {
             permissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
         }
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
+            != PackageManager.PERMISSION_GRANTED) {
+            permissionLauncher.launch(Manifest.permission.CAMERA)
+        }
     }
 
     private fun setupRecycler() {
@@ -139,8 +163,27 @@ class MainActivity : AppCompatActivity() {
         binding.wordsButton.setOnClickListener {
             startActivity(android.content.Intent(this, com.elara.app.ui.words.WordsActivity::class.java))
         }
+        binding.errorsButton.setOnClickListener {
+            startActivity(android.content.Intent(this, com.elara.app.ui.errors.ReviewErrorsActivity::class.java))
+        }
         binding.historyButton.setOnClickListener {
             startActivity(android.content.Intent(this, com.elara.app.ui.history.HistoryActivity::class.java))
+        }
+        binding.learnButton.setOnClickListener {
+            val intent = android.content.Intent(this, com.elara.app.ui.learning.LearningPathActivity::class.java)
+            learningPathLauncher.launch(intent)
+        }
+        binding.cameraButton.setOnClickListener {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
+                != PackageManager.PERMISSION_GRANTED) {
+                permissionLauncher.launch(Manifest.permission.CAMERA)
+            } else {
+                cameraLauncher.launch(null)
+            }
+        }
+        binding.photoContextDismiss.setOnClickListener {
+            viewModel.clearPhotoDescription()
+            binding.photoContextBar.visibility = android.view.View.GONE
         }
 
         binding.topicButton.setOnClickListener { toggleTopicSuggestions() }
@@ -169,6 +212,12 @@ class MainActivity : AppCompatActivity() {
                 }
                 else -> false
             }
+        }
+
+        binding.activeScenarioLabel.setOnClickListener {
+            viewModel.setScenario(null)
+            binding.activeScenarioLabel.visibility = android.view.View.GONE
+            binding.messageInput.hint = "Message ${viewModel.uiState.value.currentCharacter.displayName}..."
         }
     }
 
@@ -243,6 +292,21 @@ class MainActivity : AppCompatActivity() {
     private fun updateStreakDisplay() {
         val streak = StreakManager.getStreak(this)
         binding.streakText.text = if (streak > 1) "🔥$streak" else ""
+    }
+
+    private fun processPhoto(bitmap: Bitmap) {
+        binding.photoContextBar.visibility = android.view.View.VISIBLE
+        binding.photoContextText.text = "Analyzing photo..."
+        lifecycleScope.launch {
+            try {
+                val description = GeminiClient.describeImage(bitmap)
+                viewModel.setPhotoDescription(description)
+                binding.photoContextText.text = description
+            } catch (e: Exception) {
+                binding.photoContextBar.visibility = android.view.View.GONE
+                Toast.makeText(this@MainActivity, "Photo analysis failed: ${e.message}", Toast.LENGTH_SHORT).show()
+            }
+        }
     }
 
     // Normal mode mic
@@ -365,6 +429,19 @@ class MainActivity : AppCompatActivity() {
                 binding.escalationText.text = "❤".repeat(state.escalationLevel.coerceAtMost(9))
                 binding.characterNameText.text = state.currentCharacter.displayName
                 binding.messageInput.hint = "Message ${state.currentCharacter.displayName}..."
+                if (state.activeScenario != null) {
+                    binding.activeScenarioLabel.visibility = android.view.View.VISIBLE
+                    binding.activeScenarioLabel.text = "${state.activeScenario.emoji} ${state.activeScenario.title} (${state.activeScenario.level.label.split("·").first().trim()})"
+                } else {
+                    binding.activeScenarioLabel.visibility = android.view.View.GONE
+                }
+
+                if (state.photoDescription != null) {
+                    binding.photoContextBar.visibility = android.view.View.VISIBLE
+                    binding.photoContextText.text = state.photoDescription
+                } else if (!state.isLoading) {
+                    binding.photoContextBar.visibility = android.view.View.GONE
+                }
                 updateWorldTheme(state.currentWorld)
                 val avatarUri = AvatarManager.get(this@MainActivity, state.currentCharacter.name)
                 if (avatarUri != null) binding.avatarImage.setImageURI(avatarUri)

@@ -24,6 +24,8 @@ android {
         if (localFile.exists()) localProps.load(localFile.inputStream())
         val openRouterKey = localProps.getProperty("OPENROUTER_API_KEY") ?: ""
         buildConfigField("String", "OPENROUTER_API_KEY", "\"$openRouterKey\"")
+        val geminiKey = localProps.getProperty("GEMINI_API_KEY") ?: ""
+        buildConfigField("String", "GEMINI_API_KEY", "\"$geminiKey\"")
     }
 
     buildFeatures {

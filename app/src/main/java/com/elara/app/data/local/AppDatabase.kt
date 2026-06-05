@@ -6,18 +6,22 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import com.elara.app.data.local.dao.CharacterMemoryDao
 import com.elara.app.data.local.dao.CustomCharacterDao
+import com.elara.app.data.local.dao.ErrorDao
 import com.elara.app.data.local.dao.SessionDao
+import com.elara.app.data.local.dao.StudyPlanDao
 import com.elara.app.data.local.dao.WordDao
 import com.elara.app.data.local.entity.CharacterMemoryEntity
 import com.elara.app.data.local.entity.CustomCharacterEntity
+import com.elara.app.data.local.entity.ErrorEntity
 import com.elara.app.data.local.entity.MessageEntity
 import com.elara.app.data.local.entity.ProfileEntity
 import com.elara.app.data.local.entity.SessionEntity
+import com.elara.app.data.local.entity.StudyPlanEntity
 import com.elara.app.data.local.entity.WordEntity
 
 @Database(
-    entities = [SessionEntity::class, MessageEntity::class, ProfileEntity::class, WordEntity::class, CharacterMemoryEntity::class, CustomCharacterEntity::class],
-    version = 7,
+    entities = [SessionEntity::class, MessageEntity::class, ProfileEntity::class, WordEntity::class, CharacterMemoryEntity::class, CustomCharacterEntity::class, StudyPlanEntity::class, ErrorEntity::class],
+    version = 9,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -26,6 +30,8 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun wordDao(): WordDao
     abstract fun characterMemoryDao(): CharacterMemoryDao
     abstract fun customCharacterDao(): CustomCharacterDao
+    abstract fun studyPlanDao(): StudyPlanDao
+    abstract fun errorDao(): ErrorDao
 
     companion object {
         @Volatile private var INSTANCE: AppDatabase? = null

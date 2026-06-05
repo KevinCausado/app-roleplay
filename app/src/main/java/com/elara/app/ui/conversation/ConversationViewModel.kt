@@ -13,6 +13,7 @@ import com.elara.app.data.remote.ChatMessage
 import com.elara.app.domain.model.Character
 import com.elara.app.domain.model.ConversationTurn
 import com.elara.app.domain.model.Personality
+import com.elara.app.domain.model.Scenario
 import com.elara.app.domain.model.World
 import com.elara.app.domain.usecase.BuildPromptUseCase
 import com.elara.app.domain.usecase.CalibrateLanguageLevelUseCase
@@ -31,7 +32,9 @@ data class ConversationUiState(
     val currentPersonality: Personality = Personality.FRIENDLY,
     val currentCharacter: Character = Character.ELARA,
     val escalationLevel: Int = 0,
-    val currentSessionId: Long? = null
+    val currentSessionId: Long? = null,
+    val activeScenario: Scenario? = null,
+    val photoDescription: String? = null
 )
 
 class ConversationViewModel(app: Application) : AndroidViewModel(app) {
@@ -39,6 +42,8 @@ class ConversationViewModel(app: Application) : AndroidViewModel(app) {
     private val db = AppDatabase.get(app)
     private val dao = db.sessionDao()
     private val memoryDao = db.characterMemoryDao()
+    private val studyPlanDao = db.studyPlanDao()
+    private val errorDao = db.errorDao()
 
     private val _uiState = MutableStateFlow(ConversationUiState())
     val uiState: StateFlow<ConversationUiState> = _uiState
@@ -109,6 +114,38 @@ class ConversationViewModel(app: Application) : AndroidViewModel(app) {
         viewModelScope.launch {
             switchSession(_uiState.value.currentWorld, _uiState.value.currentPersonality, character)
         }
+    }
+
+    fun setScenario(scenario: Scenario?) {
+        if (scenario != null) {
+            val turn = ConversationTurn("assistant", scenario.openingLine)
+            history.add(turn)
+            viewModelScope.launch {
+                val sessionId = ensureSession()
+                dao.insertMessage(MessageEntity(sessionId = sessionId, role = "assistant", content = scenario.openingLine))
+            }
+        }
+        _uiState.value = _uiState.value.copy(
+            activeScenario = scenario,
+            messages = history.toList()
+        )
+    }
+
+    fun completeScenario(scenarioId: String) {
+        viewModelScope.launch {
+            val plan = studyPlanDao.get() ?: com.elara.app.data.local.entity.StudyPlanEntity()
+            val existing = plan.completedScenarios.split(",").filter { it.isNotBlank() }.toMutableSet()
+            existing.add(scenarioId)
+            studyPlanDao.upsert(plan.copy(completedScenarios = existing.joinToString(",")))
+        }
+    }
+
+    fun setPhotoDescription(description: String) {
+        _uiState.value = _uiState.value.copy(photoDescription = description)
+    }
+
+    fun clearPhotoDescription() {
+        _uiState.value = _uiState.value.copy(photoDescription = null)
     }
 
     private suspend fun switchSession(world: World, personality: Personality, character: Character) {
@@ -182,17 +219,29 @@ class ConversationViewModel(app: Application) : AndroidViewModel(app) {
                 val profile = dao.getProfile() ?: ProfileEntity()
                 val charId = _uiState.value.currentCharacter.name
                 val charMemory = memoryDao.get(charId)?.memory ?: ""
+                val scenarioPrompt = _uiState.value.activeScenario?.let { scenario ->
+                    """You are in a guided learning scenario: "${scenario.title}"
+${scenario.systemPrompt}
+
+Learning objectives: ${scenario.learningObjectives}
+
+Use this vocabulary naturally where it fits: ${scenario.suggestedVocab.joinToString(", ")}
+
+This is a ${scenario.level.label} level scenario. Adjust your language complexity accordingly."""
+                } ?: ""
+
                 val messages = buildPrompt.build(
                     history = history.dropLast(1),
                     userInput = userInput,
-                    cameraContext = null,
+                    cameraContext = _uiState.value.photoDescription,
                     world = _uiState.value.currentWorld,
                     personality = _uiState.value.currentPersonality,
                     character = _uiState.value.currentCharacter,
                     estimatedLevel = newLevel,
                     escalationLevel = _uiState.value.escalationLevel,
                     lorebookEntries = profile.lorebookEntries,
-                    characterMemory = charMemory
+                    characterMemory = charMemory,
+                    scenarioContext = scenarioPrompt
                 )
 
                 // Launch grammar check in parallel with main chat call
@@ -219,6 +268,8 @@ class ConversationViewModel(app: Application) : AndroidViewModel(app) {
                 history.add(assistantTurn)
 
                 dao.insertMessage(MessageEntity(sessionId = sessionId, role = "assistant", content = reply))
+
+                _uiState.value = _uiState.value.copy(photoDescription = null)
 
                 val newEscalation = updateEscalation(reply, _uiState.value.escalationLevel)
 
@@ -265,7 +316,14 @@ class ConversationViewModel(app: Application) : AndroidViewModel(app) {
                 request = ChatRequest(messages = prompt, maxTokens = 80)
             )
             val result = response.body()?.choices?.firstOrNull()?.message?.content?.trim() ?: return null
-            if (result == "OK" || result.equals(userInput.trim(), ignoreCase = true)) null else result
+            if (result == "OK" || result.equals(userInput.trim(), ignoreCase = true)) null
+            else {
+                errorDao.insert(com.elara.app.data.local.entity.ErrorEntity(
+                    original = userInput.trim(),
+                    corrected = result
+                ))
+                result
+            }
         } catch (e: Exception) {
             null
         }

@@ -18,10 +18,11 @@ class BuildPromptUseCase {
         estimatedLevel: Float,
         escalationLevel: Int = 0,
         lorebookEntries: String = "",
-        characterMemory: String = ""
+        characterMemory: String = "",
+        scenarioContext: String = ""
     ): List<ChatMessage> {
         val messages = mutableListOf<ChatMessage>()
-        messages.add(ChatMessage("system", buildSystemPrompt(world, personality, character, estimatedLevel, escalationLevel, lorebookEntries, characterMemory)))
+        messages.add(ChatMessage("system", buildSystemPrompt(world, personality, character, estimatedLevel, escalationLevel, lorebookEntries, characterMemory, scenarioContext, cameraContext)))
         history.takeLast(20).forEach { turn ->
             messages.add(ChatMessage(turn.role, turn.content))
         }
@@ -36,7 +37,9 @@ class BuildPromptUseCase {
         level: Float,
         escalation: Int,
         lorebookEntries: String,
-        characterMemory: String = ""
+        characterMemory: String = "",
+        scenarioContext: String = "",
+        cameraContext: String? = null
     ): String {
         val levelHint = when {
             level < 0.3f -> "Kevin's English: BEGINNER. Short sentences max 8 words. Simple vocabulary. Repeat key words naturally."
@@ -80,6 +83,8 @@ ${character.basePrompt}
 
 ${world.promptContext}
 
+${if (scenarioContext.isNotBlank()) "SCENARIO:\n$scenarioContext\n" else ""}
+${if (cameraContext != null && cameraContext.isNotBlank()) "PHOTO CONTEXT:\nKevin just showed you a photo. Here is what the camera saw: $cameraContext\nBe aware of this environment when you respond. Reference things in the photo naturally.\n" else ""}
 PERSONALITY OVERLAY:
 ${personality.promptBlock}
 
