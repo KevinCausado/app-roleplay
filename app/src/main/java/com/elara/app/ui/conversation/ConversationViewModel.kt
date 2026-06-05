@@ -17,6 +17,7 @@ import com.elara.app.domain.model.World
 import com.elara.app.domain.usecase.BuildPromptUseCase
 import com.elara.app.domain.usecase.CalibrateLanguageLevelUseCase
 import com.elara.app.domain.usecase.UpdateCharacterMemoryUseCase
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -194,12 +195,25 @@ class ConversationViewModel(app: Application) : AndroidViewModel(app) {
                     characterMemory = charMemory
                 )
 
+                // Launch grammar check in parallel with main chat call
+                val correctionDeferred = if (userInput.trim().split(" ").size >= 3) {
+                    async { checkGrammar(userInput) }
+                } else null
+
                 val response = OpenRouterClient.api.chat(
                     auth = OpenRouterClient.authHeader,
                     request = ChatRequest(messages = messages)
                 )
 
                 val reply = response.body()?.choices?.firstOrNull()?.message?.content ?: "..."
+
+                val correction = correctionDeferred?.await()
+
+                // Update the user turn with the correction result
+                val userIdx = history.indexOfLast { it.role == "user" && it.content == userInput }
+                if (userIdx >= 0 && correction != null) {
+                    history[userIdx] = history[userIdx].copy(correction = correction)
+                }
 
                 val assistantTurn = ConversationTurn("assistant", reply)
                 history.add(assistantTurn)
@@ -237,6 +251,66 @@ class ConversationViewModel(app: Application) : AndroidViewModel(app) {
                     error = e.message
                 )
             }
+        }
+    }
+
+    private suspend fun checkGrammar(userInput: String): String? {
+        return try {
+            val prompt = listOf(
+                ChatMessage("system", "You are a grammar checker. If the sentence has a grammar error, reply with ONLY the corrected sentence. If it is already correct, reply with exactly: OK"),
+                ChatMessage("user", userInput)
+            )
+            val response = OpenRouterClient.api.chat(
+                auth = OpenRouterClient.authHeader,
+                request = ChatRequest(messages = prompt, maxTokens = 80)
+            )
+            val result = response.body()?.choices?.firstOrNull()?.message?.content?.trim() ?: return null
+            if (result == "OK" || result.equals(userInput.trim(), ignoreCase = true)) null else result
+        } catch (e: Exception) {
+            null
+        }
+    }
+
+    fun getSuggestedTopics(): List<String> {
+        val char = _uiState.value.currentCharacter
+        val world = _uiState.value.currentWorld
+        return when (world) {
+            com.elara.app.domain.model.World.MODERN -> listOf(
+                "What do you do for fun on weekends?",
+                "Have you ever traveled abroad?",
+                "What kind of music do you like?",
+                "Do you cook at home or eat out more?"
+            )
+            com.elara.app.domain.model.World.MEDIEVAL -> listOf(
+                "What dangers lurk in these lands?",
+                "Have you ever fought in battle?",
+                "What do you think of the king?",
+                "Tell me about the village market."
+            )
+            com.elara.app.domain.model.World.SCIFI -> listOf(
+                "What planet did you come from?",
+                "Have you seen the new ships at the station?",
+                "Do you trust the AI systems here?",
+                "What do you think of the colony expansion?"
+            )
+            com.elara.app.domain.model.World.WESTERN -> listOf(
+                "Where are you headed, stranger?",
+                "Have you heard about the robbery?",
+                "Do you know the sheriff around here?",
+                "What do you think of this town?"
+            )
+            com.elara.app.domain.model.World.BEACH -> listOf(
+                "Do you come here often?",
+                "What's your favorite thing about the ocean?",
+                "Are you staying at the resort?",
+                "Want to grab a drink nearby?"
+            )
+            com.elara.app.domain.model.World.CYBERPUNK -> listOf(
+                "Which corp do you work for?",
+                "Have you heard about the data heist last night?",
+                "Do you have any augmentations?",
+                "Where do you get your supplies?"
+            )
         }
     }
 

@@ -67,7 +67,17 @@ class MessageAdapter(
                     marginStart = 60; marginEnd = 0
                 }
                 (b.root as LinearLayout).gravity = Gravity.END
+                if (!turn.correction.isNullOrBlank()) {
+                    b.correctionText.visibility = View.VISIBLE
+                    b.correctionText.text = "✓ ${turn.correction}"
+                    (b.correctionText.layoutParams as ViewGroup.MarginLayoutParams).apply {
+                        marginStart = 60; marginEnd = 0
+                    }
+                } else {
+                    b.correctionText.visibility = View.GONE
+                }
             } else {
+                b.correctionText.visibility = View.GONE
                 b.messageText.background = ContextCompat.getDrawable(b.root.context, R.drawable.bubble_elara)
                 b.messageText.setTextColor(0xFFDDDDFF.toInt())
                 (b.messageText.layoutParams as ViewGroup.MarginLayoutParams).apply {

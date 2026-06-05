@@ -126,6 +126,8 @@ class MainActivity : AppCompatActivity() {
             startActivity(android.content.Intent(this, com.elara.app.ui.history.HistoryActivity::class.java))
         }
 
+        binding.topicButton.setOnClickListener { toggleTopicSuggestions() }
+
         // Immersive toggle
         binding.immersiveToggle.setOnClickListener { enterImmersive() }
         binding.exitImmersive.setOnClickListener { exitImmersive() }
@@ -134,9 +136,10 @@ class MainActivity : AppCompatActivity() {
 
     private fun showCharacterSheet() {
         val current = viewModel.uiState.value.currentCharacter
-        CharacterBottomSheet(current) { character ->
-            viewModel.setCharacter(character)
-        }.show(supportFragmentManager, "character")
+        CharacterBottomSheet(
+            currentCharacter = current,
+            onCharacterSelected = { character -> viewModel.setCharacter(character) }
+        ).show(supportFragmentManager, "character")
     }
 
     private fun showWorldsSheet() {
@@ -151,6 +154,42 @@ class MainActivity : AppCompatActivity() {
         PersonalityBottomSheet(current) { personality ->
             viewModel.setPersonality(personality)
         }.show(supportFragmentManager, "personality")
+    }
+
+    private var topicsVisible = false
+
+    private fun toggleTopicSuggestions() {
+        if (topicsVisible) {
+            binding.topicScroll.visibility = android.view.View.GONE
+            topicsVisible = false
+            return
+        }
+        val topics = viewModel.getSuggestedTopics()
+        val container = binding.topicChipContainer
+        container.removeAllViews()
+        topics.forEach { topic ->
+            val chip = android.widget.TextView(this).apply {
+                text = topic
+                textSize = 12f
+                setTextColor(0xFFCCCCFF.toInt())
+                setPadding(20, 10, 20, 10)
+                background = androidx.core.content.ContextCompat.getDrawable(this@MainActivity, R.drawable.bubble_correction)
+                val params = android.widget.LinearLayout.LayoutParams(
+                    android.widget.LinearLayout.LayoutParams.WRAP_CONTENT,
+                    android.widget.LinearLayout.LayoutParams.WRAP_CONTENT
+                ).also { it.setMargins(0, 0, 12, 0) }
+                layoutParams = params
+                setOnClickListener {
+                    binding.messageInput.setText(topic)
+                    binding.messageInput.setSelection(topic.length)
+                    binding.topicScroll.visibility = android.view.View.GONE
+                    topicsVisible = false
+                }
+            }
+            container.addView(chip)
+        }
+        binding.topicScroll.visibility = android.view.View.VISIBLE
+        topicsVisible = true
     }
 
     private fun sendText() {
