@@ -30,6 +30,17 @@ class BuildPromptUseCase {
         return messages
     }
 
+    fun buildSystemPromptForPhoto(
+        world: World,
+        personality: Personality,
+        character: Character,
+        level: Float,
+        escalation: Int,
+        lorebookEntries: String,
+        characterMemory: String = "",
+        scenarioContext: String = ""
+    ): String = buildSystemPrompt(world, personality, character, level, escalation, lorebookEntries, characterMemory, scenarioContext, null)
+
     private fun buildSystemPrompt(
         world: World,
         personality: Personality,

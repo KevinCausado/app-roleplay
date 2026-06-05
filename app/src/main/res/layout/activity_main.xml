@@ -4,7 +4,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#080810">
+    android:background="#080616">
 
     <!-- Background image (custom per world) -->
     <ImageView
@@ -13,7 +13,7 @@
         android:layout_height="0dp"
         android:scaleType="centerCrop"
         android:visibility="gone"
-        android:alpha="0.25"
+        android:alpha="0.15"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -23,32 +23,32 @@
     <LinearLayout
         android:id="@+id/header"
         android:layout_width="0dp"
-        android:layout_height="68dp"
+        android:layout_height="64dp"
         android:orientation="horizontal"
         android:gravity="center_vertical"
-        android:paddingHorizontal="16dp"
-        android:paddingTop="8dp"
-        android:background="#0F0F1A"
+        android:paddingHorizontal="14dp"
+        android:paddingTop="4dp"
+        android:background="#0D0A1C"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 
-        <!-- Avatar with gradient ring -->
+        <!-- Avatar with ring -->
         <FrameLayout
-            android:layout_width="46dp"
-            android:layout_height="46dp"
+            android:layout_width="42dp"
+            android:layout_height="42dp"
             android:clickable="true"
             android:focusable="true">
 
             <View
-                android:layout_width="46dp"
-                android:layout_height="46dp"
-                android:background="@drawable/avatar_bg" />
+                android:layout_width="42dp"
+                android:layout_height="42dp"
+                android:background="@drawable/avatar_ring" />
 
             <ImageView
                 android:id="@+id/avatarImage"
-                android:layout_width="42dp"
-                android:layout_height="42dp"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
                 android:layout_gravity="center"
                 android:src="@drawable/avatar_elara"
                 android:scaleType="centerCrop"
@@ -61,7 +61,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:orientation="vertical"
-            android:layout_marginStart="12dp">
+            android:layout_marginStart="10dp">
 
             <LinearLayout
                 android:layout_width="wrap_content"
@@ -74,10 +74,10 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Elara"
-                    android:textColor="#F0F0FF"
-                    android:textSize="17sp"
+                    android:textColor="#F5F3FF"
+                    android:textSize="16sp"
                     android:textStyle="bold"
-                    android:letterSpacing="0.02"
+                    android:letterSpacing="0.03"
                     android:clickable="true"
                     android:focusable="true" />
 
@@ -85,25 +85,25 @@
                     android:id="@+id/escalationText"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="8dp"
-                    android:textColor="#E94560"
-                    android:textSize="10sp" />
+                    android:layout_marginStart="6dp"
+                    android:textColor="#F472B6"
+                    android:textSize="9sp" />
 
                 <TextView
                     android:id="@+id/streakText"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="8dp"
-                    android:textColor="#FFB300"
-                    android:textSize="10sp" />
+                    android:layout_marginStart="6dp"
+                    android:textColor="#FBBF24"
+                    android:textSize="9sp" />
 
                 <TextView
                     android:id="@+id/timerText"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="8dp"
-                    android:textColor="#44445A"
-                    android:textSize="10sp" />
+                    android:layout_marginStart="6dp"
+                    android:textColor="#5B5678"
+                    android:textSize="9sp" />
 
             </LinearLayout>
 
@@ -113,28 +113,34 @@
                 android:orientation="horizontal"
                 android:gravity="center_vertical">
 
+                <View
+                    android:layout_width="6dp"
+                    android:layout_height="6dp"
+                    android:background="@drawable/status_dot" />
+
                 <TextView
                     android:id="@+id/statusText"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="● online"
-                    android:textColor="#4CAF50"
-                    android:textSize="11sp" />
+                    android:layout_marginStart="4dp"
+                    android:text="online"
+                    android:textColor="#8B88A8"
+                    android:textSize="10sp" />
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="  ·  "
-                    android:textColor="#33334A"
-                    android:textSize="11sp" />
+                    android:textColor="#2A2640"
+                    android:textSize="10sp" />
 
                 <TextView
                     android:id="@+id/worldLabel"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="🏙️ Modern"
-                    android:textColor="#9B6FD4"
-                    android:textSize="11sp"
+                    android:textColor="#A78BFA"
+                    android:textSize="10sp"
                     android:clickable="true"
                     android:focusable="true" />
 
@@ -142,16 +148,16 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="  ·  "
-                    android:textColor="#33334A"
-                    android:textSize="11sp" />
+                    android:textColor="#2A2640"
+                    android:textSize="10sp" />
 
                 <TextView
                     android:id="@+id/personalityLabel"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="😊 Friendly"
-                    android:textColor="#E94560"
-                    android:textSize="11sp"
+                    android:textColor="#F472B6"
+                    android:textSize="10sp"
                     android:clickable="true"
                     android:focusable="true" />
 
@@ -161,80 +167,91 @@
 
         <ImageButton
             android:id="@+id/historyButton"
-            android:layout_width="44dp"
-            android:layout_height="44dp"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
             android:src="@android:drawable/ic_menu_recent_history"
-            android:tint="#7777AA"
+            android:tint="#5B5678"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="History"
             android:scaleType="fitCenter"
-            android:padding="10dp" />
+            android:padding="6dp" />
 
         <ImageButton
             android:id="@+id/errorsButton"
-            android:layout_width="44dp"
-            android:layout_height="44dp"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
             android:src="@android:drawable/ic_menu_edit"
-            android:tint="#E94560"
+            android:tint="#F472B6"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="My mistakes"
             android:scaleType="fitCenter"
-            android:padding="10dp" />
+            android:padding="6dp" />
 
         <ImageButton
             android:id="@+id/wordsButton"
-            android:layout_width="44dp"
-            android:layout_height="44dp"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
             android:src="@android:drawable/ic_menu_agenda"
-            android:tint="#7777AA"
+            android:tint="#5B5678"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="My words"
             android:scaleType="fitCenter"
-            android:padding="10dp" />
+            android:padding="6dp" />
+
+        <ImageButton
+            android:id="@+id/readButton"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:src="@android:drawable/ic_menu_info_details"
+            android:tint="#38BDF8"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Reading mode"
+            android:scaleType="fitCenter"
+            android:padding="6dp" />
 
         <ImageButton
             android:id="@+id/immersiveToggle"
-            android:layout_width="44dp"
-            android:layout_height="44dp"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
             android:src="@android:drawable/ic_menu_view"
-            android:tint="#7777AA"
+            android:tint="#5B5678"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="Immersive mode"
             android:scaleType="fitCenter"
-            android:padding="10dp" />
+            android:padding="6dp" />
 
         <ImageButton
             android:id="@+id/learnButton"
-            android:layout_width="44dp"
-            android:layout_height="44dp"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
             android:src="@android:drawable/ic_menu_sort_by_size"
-            android:tint="#E040FB"
+            android:tint="#A78BFA"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="Learning path"
             android:scaleType="fitCenter"
-            android:padding="10dp" />
+            android:padding="6dp" />
 
         <ImageButton
             android:id="@+id/settingsButton"
-            android:layout_width="44dp"
-            android:layout_height="44dp"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
             android:src="@android:drawable/ic_menu_preferences"
-            android:tint="#7777AA"
+            android:tint="#5B5678"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="Settings"
             android:scaleType="fitCenter"
-            android:padding="10dp" />
+            android:padding="6dp" />
 
         <ImageButton
             android:id="@+id/clearButton"
-            android:layout_width="44dp"
-            android:layout_height="44dp"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
             android:src="@android:drawable/ic_menu_delete"
-            android:tint="#7777AA"
+            android:tint="#5B5678"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="Clear chat"
             android:scaleType="fitCenter"
-            android:padding="10dp" />
+            android:padding="6dp" />
 
     </LinearLayout>
 
@@ -243,23 +260,62 @@
         android:id="@+id/headerDivider"
         android:layout_width="0dp"
         android:layout_height="1dp"
-        android:background="#1A1A2E"
+        android:background="#161232"
         app:layout_constraintTop_toBottomOf="@id/header"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
+
+    <!-- Daily plan card -->
+    <LinearLayout
+        android:id="@+id/dailyPlanCard"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingHorizontal="14dp"
+        android:paddingVertical="8dp"
+        android:background="#0D0A1C"
+        android:clickable="true"
+        android:focusable="true"
+        android:visibility="visible"
+        app:layout_constraintTop_toBottomOf="@id/headerDivider"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:textColor="#8B88A8"
+            android:textSize="11sp"
+            android:id="@+id/dailyPlanText"
+            android:text="📋 Today: review 5 words · try 'At the Cafe'" />
+
+        <TextView
+            android:id="@+id/dailyPlanStreak"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="#FBBF24"
+            android:textSize="12sp"
+            android:textStyle="bold"
+            android:paddingHorizontal="10dp"
+            android:paddingVertical="4dp"
+            android:background="#1A1035" />
+
+    </LinearLayout>
 
     <!-- Active scenario indicator -->
     <TextView
         android:id="@+id/activeScenarioLabel"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:textColor="#E040FB"
-        android:textSize="11sp"
-        android:paddingHorizontal="16dp"
+        android:textColor="#A78BFA"
+        android:textSize="10sp"
+        android:paddingHorizontal="14dp"
         android:paddingVertical="6dp"
-        android:background="#0F0F1A"
+        android:background="#0D0A1C"
         android:visibility="gone"
-        app:layout_constraintTop_toBottomOf="@id/headerDivider"
+        app:layout_constraintTop_toBottomOf="@id/dailyPlanCard"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
@@ -268,9 +324,9 @@
         android:id="@+id/chatRecycler"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:paddingHorizontal="16dp"
-        android:paddingTop="12dp"
-        android:paddingBottom="8dp"
+        android:paddingHorizontal="14dp"
+        android:paddingTop="10dp"
+        android:paddingBottom="4dp"
         android:clipToPadding="false"
         app:layout_constraintTop_toBottomOf="@id/activeScenarioLabel"
         app:layout_constraintStart_toStartOf="parent"
@@ -286,7 +342,7 @@
         android:gravity="center_vertical"
         android:paddingHorizontal="12dp"
         android:paddingVertical="8dp"
-        android:background="#1A1028"
+        android:background="#100C24"
         android:visibility="gone"
         app:layout_constraintBottom_toTopOf="@id/inputContainer"
         app:layout_constraintStart_toStartOf="parent"
@@ -297,22 +353,22 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="📷"
-            android:textSize="16sp" />
+            android:textSize="14sp" />
 
         <TextView
             android:id="@+id/photoContextText"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="4"
-            android:textColor="#CCCCFF"
+            android:textColor="#C4B5FD"
             android:textSize="11sp" />
 
         <ImageButton
             android:id="@+id/photoContextDismiss"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
             android:src="@android:drawable/ic_menu_close_clear_cancel"
-            android:tint="#666680"
+            android:tint="#5B5678"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="Dismiss photo" />
 
@@ -324,9 +380,10 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:paddingHorizontal="12dp"
+        android:paddingHorizontal="10dp"
+        android:paddingTop="6dp"
         android:paddingBottom="10dp"
-        android:background="#0F0F1A"
+        android:background="#0D0A1C"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
@@ -337,7 +394,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:scrollbars="none"
-            android:paddingTop="8dp"
+            android:paddingTop="6dp"
             android:paddingBottom="4dp"
             android:visibility="gone">
             <LinearLayout
@@ -360,13 +417,13 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-            app:boxBackgroundColor="#14142A"
-            app:boxStrokeColor="#2A2A45"
+            app:boxBackgroundColor="#13102A"
+            app:boxStrokeColor="#1E1A3A"
             app:boxStrokeWidth="1dp"
-            app:boxCornerRadiusTopStart="26dp"
-            app:boxCornerRadiusTopEnd="26dp"
-            app:boxCornerRadiusBottomStart="26dp"
-            app:boxCornerRadiusBottomEnd="26dp"
+            app:boxCornerRadiusTopStart="24dp"
+            app:boxCornerRadiusTopEnd="24dp"
+            app:boxCornerRadiusBottomStart="24dp"
+            app:boxCornerRadiusBottomEnd="24dp"
             app:hintEnabled="false">
 
             <com.google.android.material.textfield.TextInputEditText
@@ -374,15 +431,16 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:hint="Message Elara..."
-                android:textColor="#E8E8FF"
-                android:textColorHint="#44445A"
-                android:textSize="15sp"
-                android:paddingHorizontal="18dp"
-                android:paddingVertical="13dp"
+                android:textColor="#E8E6FF"
+                android:textColorHint="#3D3860"
+                android:textSize="14sp"
+                android:paddingHorizontal="16dp"
+                android:paddingVertical="11dp"
                 android:background="@null"
                 android:inputType="text"
                 android:singleLine="true"
-                android:imeOptions="actionSend" />
+                android:imeOptions="actionSend"
+                android:letterSpacing="0.02" />
 
         </com.google.android.material.textfield.TextInputLayout>
 
@@ -390,10 +448,10 @@
             android:id="@+id/micButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
+            android:layout_marginStart="6dp"
             android:src="@android:drawable/ic_btn_speak_now"
-            app:backgroundTint="#14142A"
-            app:tint="#7777AA"
+            app:backgroundTint="#13102A"
+            app:tint="#5B5678"
             app:fabSize="mini"
             app:elevation="0dp"
             app:borderWidth="0dp" />
@@ -402,10 +460,10 @@
             android:id="@+id/cameraButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
+            android:layout_marginStart="6dp"
             android:src="@android:drawable/ic_menu_camera"
-            app:backgroundTint="#14142A"
-            app:tint="#7777AA"
+            app:backgroundTint="#13102A"
+            app:tint="#5B5678"
             app:fabSize="mini"
             app:elevation="0dp"
             app:borderWidth="0dp" />
@@ -414,10 +472,10 @@
             android:id="@+id/topicButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
+            android:layout_marginStart="6dp"
             android:src="@android:drawable/ic_menu_compass"
-            app:backgroundTint="#14142A"
-            app:tint="#7777AA"
+            app:backgroundTint="#13102A"
+            app:tint="#5B5678"
             app:fabSize="mini"
             app:elevation="0dp"
             app:borderWidth="0dp" />
@@ -426,12 +484,12 @@
             android:id="@+id/sendButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
+            android:layout_marginStart="6dp"
             android:src="@android:drawable/ic_menu_send"
-            app:backgroundTint="#7B5EA7"
+            app:backgroundTint="#7C3AED"
             app:tint="#FFFFFF"
             app:fabSize="mini"
-            app:elevation="4dp"
+            app:elevation="3dp"
             app:borderWidth="0dp" />
 
         </LinearLayout>
@@ -442,7 +500,7 @@
         android:id="@+id/immersiveOverlay"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="#080810"
+        android:background="#080616"
         android:visibility="gone"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -456,7 +514,7 @@
             android:layout_height="match_parent"
             android:scaleType="centerCrop"
             android:visibility="gone"
-            android:alpha="0.2"
+            android:alpha="0.12"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
@@ -468,13 +526,28 @@
             android:layout_width="40dp"
             android:layout_height="40dp"
             android:text="✕"
-            android:textSize="18sp"
-            android:textColor="#44445A"
+            android:textSize="16sp"
+            android:textColor="#5B5678"
             style="@style/Widget.MaterialComponents.Button.TextButton"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            android:layout_marginTop="20dp"
-            android:layout_marginEnd="16dp" />
+            android:layout_marginTop="18dp"
+            android:layout_marginEnd="14dp" />
+
+        <!-- Call mode toggle -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/callModeToggle"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:text="📞"
+            android:textSize="16sp"
+            android:textColor="#5B5678"
+            style="@style/Widget.MaterialComponents.Button.TextButton"
+            android:visibility="gone"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            android:layout_marginTop="18dp"
+            android:layout_marginStart="14dp" />
 
         <!-- Pulse ring behind avatar -->
         <View
@@ -507,13 +580,13 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Elara"
-            android:textColor="#9B9BBB"
-            android:textSize="16sp"
-            android:letterSpacing="0.05"
+            android:textColor="#A78BFA"
+            android:textSize="15sp"
+            android:letterSpacing="0.06"
             app:layout_constraintBottom_toTopOf="@id/immersiveMic"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            android:layout_marginBottom="36dp" />
+            android:layout_marginBottom="32dp" />
 
         <!-- Mic button large -->
         <com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -521,8 +594,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:src="@android:drawable/ic_btn_speak_now"
-            app:backgroundTint="#14142A"
-            app:tint="#9B6FD4"
+            app:backgroundTint="#13102A"
+            app:tint="#A78BFA"
             app:fabSize="normal"
             app:elevation="8dp"
             app:borderWidth="0dp"
@@ -537,13 +610,13 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Tap mic to begin"
-            android:textColor="#33334A"
-            android:textSize="13sp"
-            android:letterSpacing="0.08"
+            android:textColor="#3D3860"
+            android:textSize="12sp"
+            android:letterSpacing="0.1"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            android:layout_marginBottom="60dp" />
+            android:layout_marginBottom="56dp" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

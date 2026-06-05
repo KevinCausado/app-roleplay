@@ -15,6 +15,7 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.elara.app.R
+import com.elara.app.data.local.AppDatabase
 import com.elara.app.data.remote.GeminiClient
 import com.elara.app.data.remote.drive.ElaraDriveSync
 import com.elara.app.notifications.NotificationHelper
@@ -74,6 +75,7 @@ class MainActivity : AppCompatActivity() {
     private var isListening = false
     private var isImmersive = false
     private var immersiveLoopActive = false
+    private var isCallMode = false
     private var lastSpokenContent = ""
 
     private val permissionLauncher = registerForActivityResult(
@@ -109,6 +111,7 @@ class MainActivity : AppCompatActivity() {
         setupObservers()
         loadVoiceSettings()
         updateStreakDisplay()
+        updateDailyPlan()
 
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO)
             != PackageManager.PERMISSION_GRANTED) {
@@ -117,6 +120,30 @@ class MainActivity : AppCompatActivity() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
             != PackageManager.PERMISSION_GRANTED) {
             permissionLauncher.launch(Manifest.permission.CAMERA)
+        }
+    }
+
+    private fun updateDailyPlan() {
+        lifecycleScope.launch {
+            val db = AppDatabase.get(this@MainActivity)
+            val wordCount = db.wordDao().getDueForReview(System.currentTimeMillis()).size
+            val errorCount = db.errorDao().count()
+            val plan = db.studyPlanDao().get()
+            val completed = plan?.completedScenarios?.split(",")?.filter { it.isNotBlank() }?.size ?: 0
+
+            val parts = mutableListOf<String>()
+            if (wordCount > 0) parts.add("📝 $wordCount words")
+            if (errorCount > 0) parts.add("🔍 $errorCount errors")
+            parts.add("✅ $completed scenarios done")
+
+            binding.dailyPlanText.text = parts.joinToString(" · ")
+            binding.dailyPlanStreak.text = StreakManager.getStreak(this@MainActivity).let {
+                if (it > 0) "🔥 $it" else ""
+            }
+
+            binding.dailyPlanCard.setOnClickListener {
+                startActivity(android.content.Intent(this@MainActivity, com.elara.app.ui.stats.StatsActivity::class.java))
+            }
         }
     }
 
@@ -174,6 +201,9 @@ class MainActivity : AppCompatActivity() {
             val intent = android.content.Intent(this, com.elara.app.ui.learning.LearningPathActivity::class.java)
             learningPathLauncher.launch(intent)
         }
+        binding.readButton.setOnClickListener {
+            startActivity(android.content.Intent(this, com.elara.app.ui.reading.ReadingActivity::class.java))
+        }
         binding.cameraButton.setOnClickListener {
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
                 != PackageManager.PERMISSION_GRANTED) {
@@ -192,6 +222,7 @@ class MainActivity : AppCompatActivity() {
         // Immersive toggle
         binding.immersiveToggle.setOnClickListener { enterImmersive() }
         binding.exitImmersive.setOnClickListener { exitImmersive() }
+        binding.callModeToggle.setOnClickListener { toggleCallMode() }
         binding.immersiveMic.setOnTouchListener { _, event ->
             when (event.action) {
                 android.view.MotionEvent.ACTION_DOWN -> {
@@ -259,7 +290,7 @@ class MainActivity : AppCompatActivity() {
             val chip = android.widget.TextView(this).apply {
                 text = topic
                 textSize = 12f
-                setTextColor(0xFFCCCCFF.toInt())
+                setTextColor(0xFFC4B5FD.toInt())
                 setPadding(20, 10, 20, 10)
                 background = androidx.core.content.ContextCompat.getDrawable(this@MainActivity, R.drawable.bubble_correction)
                 val params = android.widget.LinearLayout.LayoutParams(
@@ -301,8 +332,9 @@ class MainActivity : AppCompatActivity() {
         lifecycleScope.launch {
             try {
                 val description = GeminiClient.describeImage(bitmap)
-                viewModel.setPhotoDescription(description)
+                viewModel.setPhotoDescription(description, bitmap)
                 binding.photoContextText.text = description
+                viewModel.reactToPhoto()
             } catch (e: Exception) {
                 binding.photoContextBar.visibility = android.view.View.GONE
                 Toast.makeText(this@MainActivity, "Photo analysis failed: ${e.message}", Toast.LENGTH_SHORT).show()
@@ -335,11 +367,13 @@ class MainActivity : AppCompatActivity() {
         binding.immersiveStatusText.text = "Elara"
         binding.pulseRing.visibility = android.view.View.INVISIBLE
         binding.immersiveMic.setImageResource(android.R.drawable.ic_btn_speak_now)
+        binding.callModeToggle.visibility = android.view.View.VISIBLE
     }
 
     private fun exitImmersive() {
         immersiveLoopActive = false
         isImmersive = false
+        isCallMode = false
         voiceManager.stopListening()
         voiceManager.stopSpeaking()
         stopPulse()
@@ -348,6 +382,30 @@ class MainActivity : AppCompatActivity() {
         binding.inputContainer.visibility = android.view.View.VISIBLE
         binding.header.visibility = android.view.View.VISIBLE
         binding.immersiveMic.setImageResource(android.R.drawable.ic_btn_speak_now)
+        binding.callModeToggle.visibility = android.view.View.GONE
+        binding.immersiveAvatar.visibility = android.view.View.VISIBLE
+        binding.immersiveStatusText.visibility = android.view.View.VISIBLE
+        binding.immersiveHint.visibility = android.view.View.VISIBLE
+        window.clearFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+    }
+
+    private fun toggleCallMode() {
+        isCallMode = !isCallMode
+        if (isCallMode) {
+            binding.immersiveAvatar.visibility = android.view.View.GONE
+            binding.immersiveStatusText.visibility = android.view.View.GONE
+            binding.immersiveHint.visibility = android.view.View.GONE
+            binding.callModeToggle.text = "📱"
+            binding.callModeToggle.setTextColor(0xFF4ADE80.toInt())
+            window.addFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        } else {
+            binding.immersiveAvatar.visibility = android.view.View.VISIBLE
+            binding.immersiveStatusText.visibility = android.view.View.VISIBLE
+            binding.immersiveHint.visibility = android.view.View.VISIBLE
+            binding.callModeToggle.text = "📞"
+            binding.callModeToggle.setTextColor(0xFF5B5678.toInt())
+            window.clearFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        }
     }
 
     private fun toggleImmersiveMic() {
@@ -421,14 +479,15 @@ class MainActivity : AppCompatActivity() {
                     binding.chatRecycler.scrollToPosition(adapter.itemCount - 1)
                 }
 
-                binding.statusText.text = if (state.isLoading) "● typing..." else "● online"
+                binding.statusText.text = if (state.isLoading) "typing..." else "online"
                 binding.statusText.setTextColor(
-                    if (state.isLoading) 0xFFFFAA33.toInt() else 0xFF4CAF50.toInt()
+                    if (state.isLoading) 0xFFFBBF24.toInt() else 0xFF4ADE80.toInt()
                 )
                 binding.worldLabel.text = "${state.currentWorld.emoji} ${state.currentWorld.displayName}"
                 binding.personalityLabel.text = "${state.currentPersonality.emoji} ${state.currentPersonality.displayName}"
                 binding.escalationText.text = "❤".repeat(state.escalationLevel.coerceAtMost(9))
                 binding.characterNameText.text = state.currentCharacter.displayName
+                voiceManager.setCharacterVoice(state.currentCharacter.voicePitch, state.currentCharacter.voiceRate)
                 binding.messageInput.hint = "Message ${state.currentCharacter.displayName}..."
                 if (state.activeScenario != null) {
                     binding.activeScenarioLabel.visibility = android.view.View.VISIBLE
@@ -594,12 +653,12 @@ class MainActivity : AppCompatActivity() {
         }
 
         val accent = when (world) {
-            World.MODERN -> 0xFF7B5EA7.toInt()
-            World.MEDIEVAL -> 0xFF8B4513.toInt()
-            World.SCIFI -> 0xFF00B4D8.toInt()
-            World.WESTERN -> 0xFFB8730A.toInt()
-            World.BEACH -> 0xFF00897B.toInt()
-            World.CYBERPUNK -> 0xFFE040FB.toInt()
+            World.MODERN -> 0xFFA78BFA.toInt()
+            World.MEDIEVAL -> 0xFFD68B46.toInt()
+            World.SCIFI -> 0xFF38BDF8.toInt()
+            World.WESTERN -> 0xFFE2A03F.toInt()
+            World.BEACH -> 0xFF2DD4BF.toInt()
+            World.CYBERPUNK -> 0xFFF472B6.toInt()
         }
         binding.sendButton.backgroundTintList = android.content.res.ColorStateList.valueOf(accent)
         binding.worldLabel.setTextColor(accent)

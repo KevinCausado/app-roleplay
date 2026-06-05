@@ -1,11 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <style name="Theme.ElaraApp" parent="Theme.MaterialComponents.DayNight.DarkActionBar">
-        <item name="colorPrimary">#1A1A2E</item>
-        <item name="colorPrimaryVariant">#16213E</item>
-        <item name="colorOnPrimary">#FFFFFF</item>
-        <item name="colorSecondary">#E94560</item>
-        <item name="colorOnSecondary">#FFFFFF</item>
-        <item name="android:statusBarColor">#1A1A2E</item>
+        <item name="colorPrimary">#0D0B1E</item>
+        <item name="colorPrimaryVariant">#13102A</item>
+        <item name="colorOnPrimary">#F5F3FF</item>
+        <item name="colorSecondary">#A78BFA</item>
+        <item name="colorOnSecondary">#0D0B1E</item>
+        <item name="android:statusBarColor">#080616</item>
+        <item name="android:navigationBarColor">#080616</item>
+        <item name="android:windowBackground">#080616</item>
+        <item name="colorSurface">#100C24</item>
+        <item name="colorOnSurface">#E2E0F0</item>
+        <item name="android:textColorPrimary">#F0EEFF</item>
+        <item name="android:textColorSecondary">#8B88A8</item>
     </style>
 </resources>

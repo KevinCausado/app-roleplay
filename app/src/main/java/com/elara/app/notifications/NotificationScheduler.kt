@@ -8,6 +8,7 @@ import java.util.concurrent.TimeUnit
 object NotificationScheduler {
 
     private const val WORK_TAG = "elara_daily_reminder"
+    private const val WORD_TAG = "elara_daily_word"
 
     fun schedule(context: Context) {
         val delay = millisUntil(hour = 20, minute = 0)
@@ -16,14 +17,22 @@ object NotificationScheduler {
             .addTag(WORK_TAG)
             .build()
         WorkManager.getInstance(context).enqueueUniquePeriodicWork(
-            WORK_TAG,
-            ExistingPeriodicWorkPolicy.KEEP,
-            request
+            WORK_TAG, ExistingPeriodicWorkPolicy.KEEP, request
+        )
+
+        val wordDelay = millisUntil(hour = 9, minute = 0)
+        val wordRequest = PeriodicWorkRequestBuilder<DailyWordWorker>(24, TimeUnit.HOURS)
+            .setInitialDelay(wordDelay, TimeUnit.MILLISECONDS)
+            .addTag(WORD_TAG)
+            .build()
+        WorkManager.getInstance(context).enqueueUniquePeriodicWork(
+            WORD_TAG, ExistingPeriodicWorkPolicy.KEEP, wordRequest
         )
     }
 
     fun cancel(context: Context) {
         WorkManager.getInstance(context).cancelAllWorkByTag(WORK_TAG)
+        WorkManager.getInstance(context).cancelAllWorkByTag(WORD_TAG)
     }
 
     private fun millisUntil(hour: Int, minute: Int): Long {

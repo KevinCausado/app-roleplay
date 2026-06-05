@@ -4,7 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:paddingVertical="3dp">
+    android:paddingVertical="4dp">
 
     <TextView
         android:id="@+id/messageText"
@@ -12,19 +12,22 @@
         android:layout_height="wrap_content"
         android:maxWidth="300dp"
         android:textSize="15sp"
-        android:textColor="#EEEEFF"
-        android:padding="12dp"
-        android:lineSpacingExtra="3dp" />
+        android:textColor="#EEECFF"
+        android:paddingHorizontal="14dp"
+        android:paddingVertical="10dp"
+        android:lineSpacingExtra="4dp"
+        android:letterSpacing="0.01"
+        android:elevation="1dp" />
 
     <TextView
         android:id="@+id/repeatButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="&#128257; Repeat"
-        android:textColor="#44445A"
+        android:textColor="#5B5678"
         android:textSize="11sp"
-        android:paddingStart="4dp"
-        android:paddingBottom="4dp"
+        android:paddingStart="6dp"
+        android:paddingBottom="6dp"
         android:visibility="gone"
         android:clickable="true"
         android:focusable="true" />
@@ -34,11 +37,24 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textSize="11sp"
-        android:textColor="#9B6FD4"
-        android:paddingHorizontal="10dp"
-        android:paddingVertical="4dp"
+        android:textColor="#C4B5FD"
+        android:paddingHorizontal="12dp"
+        android:paddingVertical="6dp"
         android:background="@drawable/bubble_correction"
-        android:layout_marginTop="3dp"
+        android:layout_marginTop="4dp"
+        android:layout_marginEnd="60dp"
+        android:visibility="gone" />
+
+    <TextView
+        android:id="@+id/suggestionText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="11sp"
+        android:textColor="#A5B4FC"
+        android:paddingHorizontal="12dp"
+        android:paddingVertical="6dp"
+        android:background="@drawable/bubble_suggestion"
+        android:layout_marginTop="4dp"
         android:layout_marginEnd="60dp"
         android:visibility="gone" />
 

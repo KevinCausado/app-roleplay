@@ -3,7 +3,7 @@
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:background="#1E1E2E"
+    android:background="#14102E"
     android:padding="16dp"
     android:minWidth="180dp">
 
@@ -11,7 +11,7 @@
         android:id="@+id/popupWord"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textColor="#FFFFFF"
+        android:textColor="#F5F3FF"
         android:textSize="16sp"
         android:textStyle="bold" />
 
@@ -19,7 +19,7 @@
         android:id="@+id/popupTranslation"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textColor="#9B9BBB"
+        android:textColor="#8B88A8"
         android:textSize="14sp"
         android:layout_marginTop="4dp"
         android:text="..." />
@@ -31,7 +31,7 @@
         android:layout_marginTop="12dp"
         android:text="Save word"
         android:textSize="12sp"
-        android:textColor="#FFFFFF"
-        android:backgroundTint="#7B5EA7" />
+        android:textColor="#F5F3FF"
+        android:backgroundTint="#7C3AED" />
 
 </LinearLayout>

@@ -123,10 +123,10 @@ class PathAdapter(
 
                 if (item.done) {
                     h.status.text = "✓"
-                    h.status.setTextColor(0xFF4CAF50.toInt())
+                    h.status.setTextColor(0xFF4ADE80.toInt())
                 } else if (item.unlocked) {
                     h.status.text = "○"
-                    h.status.setTextColor(0xFF666680.toInt())
+                    h.status.setTextColor(0xFF8B88A8.toInt())
                 } else {
                     h.status.text = "🔒"
                 }

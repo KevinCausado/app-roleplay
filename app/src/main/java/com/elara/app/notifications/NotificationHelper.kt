@@ -11,8 +11,8 @@ import com.elara.app.ui.main.MainActivity
 
 object NotificationHelper {
 
-    private const val CHANNEL_DAILY = "elara_daily"
-    private const val CHANNEL_REVIEW = "elara_review"
+    const val CHANNEL_DAILY = "elara_daily"
+    const val CHANNEL_REVIEW = "elara_review"
 
     fun createChannels(context: Context) {
         val nm = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager

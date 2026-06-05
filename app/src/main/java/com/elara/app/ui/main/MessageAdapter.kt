@@ -8,6 +8,7 @@ import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.animation.AlphaAnimation
 import android.widget.Button
 import android.widget.PopupWindow
 import android.widget.TextView
@@ -48,9 +49,15 @@ class MessageAdapter(
         return MessageVH(binding)
     }
 
-    override fun onBindViewHolder(holder: MessageVH, position: Int) {
-        holder.bind(items[position])
-    }
+        override fun onBindViewHolder(holder: MessageVH, position: Int) {
+            holder.bind(items[position])
+            if (position >= items.size - 2) {
+                val fadeIn = AlphaAnimation(0f, 1f)
+                fadeIn.duration = 200
+                fadeIn.fillAfter = true
+                holder.itemView.startAnimation(fadeIn)
+            }
+        }
 
     override fun getItemCount() = items.size
 
@@ -61,7 +68,7 @@ class MessageAdapter(
             if (turn.role == "user") {
                 b.messageText.text = turn.content
                 b.messageText.background = ContextCompat.getDrawable(b.root.context, R.drawable.bubble_user)
-                b.messageText.setTextColor(0xFFEEEEFF.toInt())
+                b.messageText.setTextColor(0xFFF5F3FF.toInt())
                 b.messageText.movementMethod = null
                 (b.messageText.layoutParams as ViewGroup.MarginLayoutParams).apply {
                     marginStart = 60; marginEnd = 0
@@ -70,16 +77,27 @@ class MessageAdapter(
                 if (!turn.correction.isNullOrBlank()) {
                     b.correctionText.visibility = View.VISIBLE
                     b.correctionText.text = "✓ ${turn.correction}"
+                    b.correctionText.setTextColor(0xFFC4B5FD.toInt())
                     (b.correctionText.layoutParams as ViewGroup.MarginLayoutParams).apply {
                         marginStart = 60; marginEnd = 0
                     }
                 } else {
                     b.correctionText.visibility = View.GONE
                 }
+                if (!turn.phraseSuggestion.isNullOrBlank()) {
+                    b.suggestionText.visibility = View.VISIBLE
+                    b.suggestionText.text = "💡 ${turn.phraseSuggestion}"
+                    (b.suggestionText.layoutParams as ViewGroup.MarginLayoutParams).apply {
+                        marginStart = 60; marginEnd = 0
+                    }
+                } else {
+                    b.suggestionText.visibility = View.GONE
+                }
             } else {
                 b.correctionText.visibility = View.GONE
+                b.suggestionText.visibility = View.GONE
                 b.messageText.background = ContextCompat.getDrawable(b.root.context, R.drawable.bubble_elara)
-                b.messageText.setTextColor(0xFFDDDDFF.toInt())
+                b.messageText.setTextColor(0xFFE2DFF5.toInt())
                 (b.messageText.layoutParams as ViewGroup.MarginLayoutParams).apply {
                     marginStart = 0; marginEnd = 60
                 }
@@ -108,7 +126,7 @@ class MessageAdapter(
                         showTranslatePopup(view, word, text)
                     }
                     override fun updateDrawState(ds: android.text.TextPaint) {
-                        ds.color = 0xFFDDDDFF.toInt()
+                        ds.color = 0xFFE2DFF5.toInt()
                         ds.isUnderlineText = false
                     }
                 }
@@ -116,7 +134,7 @@ class MessageAdapter(
             }
             tv.text = spannable
             tv.movementMethod = LinkMovementMethod.getInstance()
-            tv.highlightColor = 0x337B5EA7
+            tv.highlightColor = 0x33A78BFA
         }
 
         private fun showTranslatePopup(anchor: View, word: String, context: String) {

@@ -50,6 +50,60 @@ object GeminiClient {
             })
         }
 
+        val text = callGeminiApi(body)
+        if (text.isBlank()) throw Exception("Gemini returned empty description")
+        text.trim()
+    }
+
+    suspend fun chatWithImage(
+        systemPrompt: String,
+        history: List<ChatMessage>,
+        userMessage: String,
+        bitmap: Bitmap
+    ): String = withContext(Dispatchers.IO) {
+        val resized = resizeBitmap(bitmap, 768)
+        val base64 = bitmapToBase64(resized)
+
+        val contents = JSONArray()
+
+        history.takeLast(10).forEach { msg ->
+            val role = if (msg.role == "assistant") "model" else "user"
+            contents.put(JSONObject().apply {
+                put("role", role)
+                put("parts", JSONArray().apply {
+                    put(JSONObject().apply { put("text", msg.content) })
+                })
+            })
+        }
+
+        contents.put(JSONObject().apply {
+            put("role", "user")
+            put("parts", JSONArray().apply {
+                put(JSONObject().apply { put("text", userMessage) })
+                put(JSONObject().apply {
+                    put("inline_data", JSONObject().apply {
+                        put("mime_type", "image/jpeg")
+                        put("data", base64)
+                    })
+                })
+            })
+        })
+
+        val body = JSONObject().apply {
+            put("system_instruction", JSONObject().apply {
+                put("parts", JSONArray().apply {
+                    put(JSONObject().apply { put("text", systemPrompt) })
+                })
+            })
+            put("contents", contents)
+        }
+
+        val text = callGeminiApi(body)
+        if (text.isBlank()) throw Exception("Gemini returned empty response")
+        text.trim()
+    }
+
+    private fun callGeminiApi(body: JSONObject): String {
         val request = Request.Builder()
             .url(endpoint)
             .post(body.toString().toRequestBody("application/json".toMediaType()))
@@ -63,15 +117,12 @@ object GeminiClient {
         }
 
         val json = JSONObject(responseBody)
-        val text = json.getJSONArray("candidates")
+        return json.getJSONArray("candidates")
             .getJSONObject(0)
             .getJSONObject("content")
             .getJSONArray("parts")
             .getJSONObject(0)
             .optString("text", "")
-
-        if (text.isBlank()) throw Exception("Gemini returned empty description")
-        text.trim()
     }
 
     private fun resizeBitmap(bitmap: Bitmap, maxSize: Int): Bitmap {

@@ -20,14 +20,14 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:textColor="#E94560"
+            android:textColor="#F472B6"
             android:textSize="13sp" />
 
         <TextView
             android:id="@+id/errorReviewed"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textColor="#44445A"
+            android:textColor="#5B5678"
             android:textSize="10sp"
             android:layout_marginStart="8dp" />
 
@@ -37,14 +37,14 @@
         android:id="@+id/errorCorrected"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textColor="#4CAF50"
+        android:textColor="#4ADE80"
         android:textSize="13sp"
         android:layout_marginTop="4dp" />
 
     <View
         android:layout_width="match_parent"
         android:layout_height="1dp"
-        android:background="#1A1A2E"
+        android:background="#161232"
         android:layout_marginTop="10dp" />
 
 </LinearLayout>

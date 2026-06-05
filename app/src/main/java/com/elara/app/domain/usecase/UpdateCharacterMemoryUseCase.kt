@@ -35,8 +35,32 @@ class UpdateCharacterMemoryUseCase(
             )
             val newMemory = response.body()?.choices?.firstOrNull()?.message?.content ?: return
             dao.upsert(CharacterMemoryEntity(characterId = characterId, memory = newMemory))
+        } catch (e: Exception) {}
+    }
+
+    suspend fun summarizeSession(characterId: String, allMessages: List<ChatMessage>): String {
+        if (allMessages.size < 25) return ""
+
+        try {
+            val oldMessages = allMessages.dropLast(15).takeLast(20)
+            val conversation = oldMessages.joinToString("\n") {
+                "${if (it.role == "user") "Kevin" else "Assistant"}: ${it.content.take(200)}"
+            }
+
+            val response = OpenRouterClient.api.chat(
+                auth = OpenRouterClient.authHeader,
+                request = ChatRequest(
+                    messages = listOf(ChatMessage("user", "Summarize this conversation in 3-4 short bullet points. Only key events and topics discussed. In English:\n\n$conversation")),
+                    maxTokens = 150
+                )
+            )
+            val summary = response.body()?.choices?.firstOrNull()?.message?.content ?: ""
+            val existing = dao.get(characterId)?.memory ?: ""
+            val sessionNote = "\n[Earlier this session: $summary]"
+            dao.upsert(CharacterMemoryEntity(characterId = characterId, memory = existing + sessionNote))
+            return summary
         } catch (e: Exception) {
-            // silently fail — memory update is non-critical
+            return ""
         }
     }
 }

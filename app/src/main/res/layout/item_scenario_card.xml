@@ -34,7 +34,7 @@
                 android:id="@+id/scenarioTitle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textColor="#F0F0FF"
+                android:textColor="#F5F3FF"
                 android:textSize="14sp"
                 android:textStyle="bold" />
 
@@ -43,9 +43,9 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="8dp"
-                android:textColor="#44445A"
+                android:textColor="#5B5678"
                 android:textSize="10sp"
-                android:background="#1A1A2E"
+                android:background="#161232"
                 android:paddingHorizontal="8dp"
                 android:paddingVertical="2dp" />
 
@@ -55,7 +55,7 @@
             android:id="@+id/scenarioDescription"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textColor="#666680"
+            android:textColor="#8B88A8"
             android:textSize="11sp"
             android:layout_marginTop="4dp"
             android:maxLines="2"

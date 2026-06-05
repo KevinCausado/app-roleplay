@@ -20,6 +20,8 @@ class VoiceManager(private val context: Context) {
 
     var pitch: Float = 1.1f
     var speechRate: Float = 0.95f
+    private var charPitch: Float? = null
+    private var charRate: Float? = null
 
     var onSpeechResult: ((String) -> Unit)? = null
     var onSpeechStarted: (() -> Unit)? = null
@@ -39,10 +41,16 @@ class VoiceManager(private val context: Context) {
         }
     }
 
+    fun setCharacterVoice(pitch: Float, rate: Float) {
+        charPitch = pitch
+        charRate = rate
+        applyVoiceSettings()
+    }
+
     fun applyVoiceSettings() {
         if (!isTtsReady) return
-        tts?.setPitch(pitch)
-        tts?.setSpeechRate(speechRate)
+        tts?.setPitch(charPitch ?: pitch)
+        tts?.setSpeechRate(charRate ?: speechRate)
     }
 
     fun speak(text: String) {

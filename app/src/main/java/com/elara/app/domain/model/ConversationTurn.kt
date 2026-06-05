@@ -5,5 +5,6 @@ data class ConversationTurn(
     val content: String,
     val timestamp: Long = System.currentTimeMillis(),
     val cameraContext: String? = null,
-    val correction: String? = null
+    val correction: String? = null,
+    val phraseSuggestion: String? = null
 )
