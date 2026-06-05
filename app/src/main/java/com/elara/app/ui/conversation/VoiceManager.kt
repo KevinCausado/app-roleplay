@@ -136,7 +136,10 @@ class VoiceManager(private val context: Context) {
 
     fun stopListening() {
         continuous = false
-        stopInternal()
+        // stopListening (not destroy) triggers onResults with what was captured so far
+        stt?.stopListening()
+        stt?.destroy()
+        stt = null
         dictationBuffer.clear()
         onListeningStateChanged?.invoke(false)
     }

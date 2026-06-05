@@ -107,7 +107,24 @@ class MainActivity : AppCompatActivity() {
 
     private fun setupInput() {
         binding.sendButton.setOnClickListener { sendText() }
-        binding.micButton.setOnClickListener { toggleMic() }
+        binding.micButton.setOnTouchListener { _, event ->
+            when (event.action) {
+                android.view.MotionEvent.ACTION_DOWN -> {
+                    voiceManager.stopSpeaking()
+                    voiceManager.startDictation(binding.messageInput.text?.toString() ?: "")
+                    binding.micButton.setImageResource(android.R.drawable.ic_media_pause)
+                    true
+                }
+                android.view.MotionEvent.ACTION_UP, android.view.MotionEvent.ACTION_CANCEL -> {
+                    voiceManager.stopListening()
+                    binding.micButton.setImageResource(android.R.drawable.ic_btn_speak_now)
+                    val text = binding.messageInput.text?.toString()?.trim() ?: ""
+                    if (text.isNotEmpty()) sendText()
+                    true
+                }
+                else -> false
+            }
+        }
 
         binding.messageInput.setOnEditorActionListener { _, actionId, _ ->
             if (actionId == EditorInfo.IME_ACTION_SEND) { sendText(); true } else false
@@ -131,7 +148,28 @@ class MainActivity : AppCompatActivity() {
         // Immersive toggle
         binding.immersiveToggle.setOnClickListener { enterImmersive() }
         binding.exitImmersive.setOnClickListener { exitImmersive() }
-        binding.immersiveMic.setOnClickListener { toggleImmersiveMic() }
+        binding.immersiveMic.setOnTouchListener { _, event ->
+            when (event.action) {
+                android.view.MotionEvent.ACTION_DOWN -> {
+                    voiceManager.stopSpeaking()
+                    voiceManager.startListening()
+                    immersiveLoopActive = true
+                    binding.immersiveHint.text = "listening..."
+                    binding.immersiveStatusText.text = "I'm listening"
+                    startPulse()
+                    binding.immersiveMic.setImageResource(android.R.drawable.ic_media_pause)
+                    true
+                }
+                android.view.MotionEvent.ACTION_UP, android.view.MotionEvent.ACTION_CANCEL -> {
+                    voiceManager.stopListening()
+                    stopPulse()
+                    binding.immersiveHint.text = "tap to speak"
+                    binding.immersiveMic.setImageResource(android.R.drawable.ic_btn_speak_now)
+                    true
+                }
+                else -> false
+            }
+        }
     }
 
     private fun showCharacterSheet() {
@@ -293,12 +331,10 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        // Single-shot result: auto-send in immersive mode
+        // Single-shot result: auto-send in immersive mode (push-to-talk)
         voiceManager.onSpeechResult = { text ->
-            if (isImmersive && immersiveLoopActive) {
-                if (text.isNotBlank()) {
-                    viewModel.sendMessage(text)
-                }
+            if (isImmersive && text.isNotBlank()) {
+                viewModel.sendMessage(text)
             }
         }
 
