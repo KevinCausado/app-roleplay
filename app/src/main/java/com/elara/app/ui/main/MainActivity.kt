@@ -74,6 +74,7 @@ class MainActivity : AppCompatActivity() {
     private var isListening = false
     private var isImmersive = false
     private var immersiveLoopActive = false
+    private var lastSpokenContent = ""
 
     private val permissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
@@ -469,10 +470,11 @@ class MainActivity : AppCompatActivity() {
                     }
                 }
 
-                // Auto-speak last assistant message
+                // Auto-speak last assistant message (only if new)
                 if (!state.isLoading && state.messages.isNotEmpty()) {
                     val last = state.messages.last()
-                    if (last.role == "assistant") {
+                    if (last.role == "assistant" && last.content != lastSpokenContent) {
+                        lastSpokenContent = last.content
                         voiceManager.speak(last.content)
                     }
                 }

@@ -305,9 +305,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="4"
             android:textColor="#CCCCFF"
-            android:textSize="11sp"
-            android:maxLines="3"
-            android:ellipsize="end" />
+            android:textSize="11sp" />
 
         <ImageButton
             android:id="@+id/photoContextDismiss"

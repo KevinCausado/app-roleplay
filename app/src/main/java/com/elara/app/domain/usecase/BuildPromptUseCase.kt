@@ -84,7 +84,7 @@ ${character.basePrompt}
 ${world.promptContext}
 
 ${if (scenarioContext.isNotBlank()) "SCENARIO:\n$scenarioContext\n" else ""}
-${if (cameraContext != null && cameraContext.isNotBlank()) "PHOTO CONTEXT:\nKevin just showed you a photo. Here is what the camera saw: $cameraContext\nBe aware of this environment when you respond. Reference things in the photo naturally.\n" else ""}
+${if (cameraContext != null && cameraContext.isNotBlank()) "YOU ARE LOOKING AT THIS RIGHT NOW, TOGETHER WITH KEVIN:\n$cameraContext\nIMPORTANT: Do NOT describe what you see. Do NOT say \"I see\" or \"the photo shows\". Kevin already knows what's there. Instead, react to it like a real person would — ask a question about something in the scene, comment on it, or relate it to your shared situation. Act like you're both standing there looking at the same thing.\n" else ""}
 PERSONALITY OVERLAY:
 ${personality.promptBlock}
 

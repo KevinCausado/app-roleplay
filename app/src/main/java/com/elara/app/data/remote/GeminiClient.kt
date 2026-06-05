@@ -35,9 +35,9 @@ object GeminiClient {
                         put(JSONObject().apply {
                             put("text", "Describe this image in simple English for an A1-A2 English learner. " +
                                 "Name the objects, people, colors, location, and what is happening. " +
-                                "Use short sentences. 3-5 sentences maximum. " +
-                                "Example: 'I see a kitchen. There is a table. On the table there is a cup of coffee. The light is bright.' " +
-                                "Do NOT add commentary, just describe what you see.")
+                                "5-7 sentences. Be detailed but use simple words. " +
+                                "Example: 'I see a kitchen. There is a wooden table. On the table there is a white cup of coffee and a plate with toast. The light from the window is bright. Someone is sitting at the table reading something.' " +
+                                "Do NOT add commentary or questions, just describe what you see.")
                         })
                         put(JSONObject().apply {
                             put("inline_data", JSONObject().apply {
